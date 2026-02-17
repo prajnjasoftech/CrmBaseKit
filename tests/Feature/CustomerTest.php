@@ -380,6 +380,90 @@ describe('Customer Entity Type', function (): void {
     });
 });
 
+describe('Customer Search', function (): void {
+    it('filters customers by name', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Customer::factory()->create(['name' => 'John Smith']);
+        Customer::factory()->create(['name' => 'Jane Doe']);
+        Customer::factory()->create(['name' => 'Bob Johnson']);
+
+        $response = $this->actingAs($user)->get('/customers?search=John');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Customers/Index')
+            ->has('customers.data', 2) // John Smith and Bob Johnson
+            ->has('filters')
+            ->where('filters.search', 'John')
+        );
+    });
+
+    it('filters customers by email', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Customer::factory()->create(['email' => 'john@acme.com']);
+        Customer::factory()->create(['email' => 'jane@other.com']);
+
+        $response = $this->actingAs($user)->get('/customers?search=acme');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Customers/Index')
+            ->has('customers.data', 1)
+        );
+    });
+
+    it('filters customers by company', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Customer::factory()->create(['company' => 'Acme Corp']);
+        Customer::factory()->create(['company' => 'Tech Inc']);
+
+        $response = $this->actingAs($user)->get('/customers?search=Acme');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Customers/Index')
+            ->has('customers.data', 1)
+        );
+    });
+
+    it('filters customers by phone', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Customer::factory()->create(['phone' => '555-1234']);
+        Customer::factory()->create(['phone' => '555-5678']);
+
+        $response = $this->actingAs($user)->get('/customers?search=1234');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Customers/Index')
+            ->has('customers.data', 1)
+        );
+    });
+
+    it('returns all customers when search is empty', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Customer::factory()->count(5)->create();
+
+        $response = $this->actingAs($user)->get('/customers?search=');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Customers/Index')
+            ->has('customers.data', 5)
+        );
+    });
+});
+
 describe('Customer Authorization', function (): void {
     it('allows admin full access', function (): void {
         $user = User::factory()->create();

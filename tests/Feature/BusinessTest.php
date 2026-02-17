@@ -227,6 +227,91 @@ describe('Business Delete', function (): void {
     });
 });
 
+describe('Business Search', function (): void {
+    it('filters businesses by name', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        Business::factory()->create(['name' => 'Acme Corp']);
+        Business::factory()->create(['name' => 'Tech Solutions']);
+        Business::factory()->create(['name' => 'Acme Industries']);
+
+        $response = $this->actingAs($user)->get('/businesses?search=Acme');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Businesses/Index')
+            ->has('businesses.data', 2)
+            ->has('filters')
+            ->where('filters.search', 'Acme')
+        );
+    });
+
+    it('filters businesses by email', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        Business::factory()->create(['email' => 'info@acme.com']);
+        Business::factory()->create(['email' => 'contact@tech.com']);
+
+        $response = $this->actingAs($user)->get('/businesses?search=acme');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Businesses/Index')
+            ->has('businesses.data', 1)
+        );
+    });
+
+    it('filters businesses by phone', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        Business::factory()->create(['phone' => '555-1234']);
+        Business::factory()->create(['phone' => '555-5678']);
+
+        $response = $this->actingAs($user)->get('/businesses?search=1234');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Businesses/Index')
+            ->has('businesses.data', 1)
+        );
+    });
+
+    it('filters businesses by industry', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        Business::factory()->create(['industry' => 'Technology']);
+        Business::factory()->create(['industry' => 'Healthcare']);
+        Business::factory()->create(['industry' => 'Technology']);
+
+        $response = $this->actingAs($user)->get('/businesses?search=Technology');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Businesses/Index')
+            ->has('businesses.data', 2)
+        );
+    });
+
+    it('returns all businesses when search is empty', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        Business::factory()->count(5)->create();
+
+        $response = $this->actingAs($user)->get('/businesses?search=');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Businesses/Index')
+            ->has('businesses.data', 5)
+        );
+    });
+});
+
 describe('Business Authorization', function (): void {
     it('allows manager to view businesses', function (): void {
         $user = User::factory()->create();

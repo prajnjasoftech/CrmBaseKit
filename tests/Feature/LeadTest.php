@@ -441,6 +441,90 @@ describe('Lead Entity Type', function (): void {
     });
 });
 
+describe('Lead Search', function (): void {
+    it('filters leads by name', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Lead::factory()->create(['name' => 'John Smith', 'company' => 'Acme Inc']);
+        Lead::factory()->create(['name' => 'Jane Doe', 'company' => 'Tech Corp']);
+        Lead::factory()->create(['name' => 'Bob Johnson', 'company' => 'Widget LLC']);
+
+        $response = $this->actingAs($user)->get('/leads?search=John');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Leads/Index')
+            ->has('leads.data', 2) // John Smith and Bob Johnson
+            ->has('filters')
+            ->where('filters.search', 'John')
+        );
+    });
+
+    it('filters leads by email', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Lead::factory()->create(['email' => 'john@acme.com']);
+        Lead::factory()->create(['email' => 'jane@other.com']);
+
+        $response = $this->actingAs($user)->get('/leads?search=acme');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Leads/Index')
+            ->has('leads.data', 1)
+        );
+    });
+
+    it('filters leads by company', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Lead::factory()->create(['company' => 'Acme Corp']);
+        Lead::factory()->create(['company' => 'Tech Inc']);
+
+        $response = $this->actingAs($user)->get('/leads?search=Acme');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Leads/Index')
+            ->has('leads.data', 1)
+        );
+    });
+
+    it('filters leads by phone', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Lead::factory()->create(['phone' => '555-1234']);
+        Lead::factory()->create(['phone' => '555-5678']);
+
+        $response = $this->actingAs($user)->get('/leads?search=1234');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Leads/Index')
+            ->has('leads.data', 1)
+        );
+    });
+
+    it('returns all leads when search is empty', function (): void {
+        $user = User::factory()->create();
+        $user->assignRole('sales');
+
+        Lead::factory()->count(5)->create();
+
+        $response = $this->actingAs($user)->get('/leads?search=');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Leads/Index')
+            ->has('leads.data', 5)
+        );
+    });
+});
+
 describe('Lead Authorization', function (): void {
     it('allows admin full access', function (): void {
         $user = User::factory()->create();
