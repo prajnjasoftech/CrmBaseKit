@@ -13,24 +13,38 @@ use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class LeadController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Lead::class);
 
+        $search = $request->input('search');
+
         $leads = Lead::query()
             ->with(['assignee:id,name', 'business:id,name'])
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('company_name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                });
+            })
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('Leads/Index', [
             'leads' => $leads,
             'statuses' => Lead::getStatuses(),
             'sources' => Lead::getSources(),
+            'filters' => ['search' => $search],
         ]);
     }
 

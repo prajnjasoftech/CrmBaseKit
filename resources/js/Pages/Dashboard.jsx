@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '../Layouts/AdminLayout';
 
 export default function Dashboard({ auth }) {
@@ -50,14 +50,14 @@ export default function Dashboard({ auth }) {
                                 Your CRM Base Kit is ready! Start by adding your first lead or customer.
                             </p>
                             <div className="d-flex gap-2 mt-3">
-                                <button className="btn btn-primary">
+                                <Link href="/leads/create" className="btn btn-primary">
                                     <i className="bi bi-plus-lg me-2"></i>
                                     Add Lead
-                                </button>
-                                <button className="btn btn-outline-secondary">
+                                </Link>
+                                <Link href="/customers/create" className="btn btn-outline-secondary">
                                     <i className="bi bi-person-plus me-2"></i>
                                     Add Customer
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -70,18 +70,18 @@ export default function Dashboard({ auth }) {
                         </div>
                         <div className="card-body">
                             <div className="list-group list-group-flush">
-                                <a href="/leads" className="list-group-item list-group-item-action">
+                                <Link href="/leads" className="list-group-item list-group-item-action">
                                     <i className="bi bi-funnel me-2"></i>
                                     Manage Leads
-                                </a>
-                                <a href="/customers" className="list-group-item list-group-item-action">
+                                </Link>
+                                <Link href="/customers" className="list-group-item list-group-item-action">
                                     <i className="bi bi-people me-2"></i>
                                     View Customers
-                                </a>
-                                <a href="/settings" className="list-group-item list-group-item-action">
-                                    <i className="bi bi-gear me-2"></i>
-                                    Settings
-                                </a>
+                                </Link>
+                                <Link href="/users" className="list-group-item list-group-item-action">
+                                    <i className="bi bi-person me-2"></i>
+                                    Manage Users
+                                </Link>
                             </div>
                         </div>
                     </div>
