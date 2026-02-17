@@ -454,7 +454,7 @@ Returns paginated list of leads with optional search filtering.
 **Query Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| search | string | Search by first_name, last_name, company_name, email, or phone |
+| search | string | Search by name, company, email, or phone |
 | page | integer | Page number for pagination |
 
 **Response Props:**
@@ -783,7 +783,7 @@ Returns paginated list of customers with optional search filtering.
 **Query Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| search | string | Search by first_name, last_name, company_name, email, or phone |
+| search | string | Search by name, company, email, or phone |
 | page | integer | Page number for pagination |
 
 **Response Props:**
