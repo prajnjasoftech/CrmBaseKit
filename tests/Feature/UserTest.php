@@ -45,6 +45,58 @@ describe('User Index', function (): void {
     });
 });
 
+describe('User Search', function (): void {
+    it('filters users by name', function (): void {
+        $admin = User::factory()->create(['name' => 'Admin User']);
+        $admin->assignRole('admin');
+
+        User::factory()->create(['name' => 'John Smith']);
+        User::factory()->create(['name' => 'Jane Doe']);
+        User::factory()->create(['name' => 'Bob Johnson']);
+
+        $response = $this->actingAs($admin)->get('/users?search=John');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Users/Index')
+            ->has('users.data', 2) // John Smith and Bob Johnson
+            ->has('filters')
+            ->where('filters.search', 'John')
+        );
+    });
+
+    it('filters users by email', function (): void {
+        $admin = User::factory()->create(['name' => 'Admin User', 'email' => 'admin@test.com']);
+        $admin->assignRole('admin');
+
+        User::factory()->create(['email' => 'john@acme.com']);
+        User::factory()->create(['email' => 'jane@other.com']);
+
+        $response = $this->actingAs($admin)->get('/users?search=acme');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Users/Index')
+            ->has('users.data', 1)
+        );
+    });
+
+    it('returns all users when search is empty', function (): void {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        User::factory()->count(4)->create();
+
+        $response = $this->actingAs($admin)->get('/users?search=');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Users/Index')
+            ->has('users.data', 5) // 4 created + admin
+        );
+    });
+});
+
 describe('User Create', function (): void {
     it('shows create form to admin', function (): void {
         $admin = User::factory()->create();

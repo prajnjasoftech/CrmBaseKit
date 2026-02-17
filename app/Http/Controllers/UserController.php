@@ -20,11 +20,11 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $search = $request->input('search');
+        $search = $request->string('search')->toString();
 
         $users = User::query()
             ->with('roles:id,name')
-            ->when($search, function ($query, $search) {
+            ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%");

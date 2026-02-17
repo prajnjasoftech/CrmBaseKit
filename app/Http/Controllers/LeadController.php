@@ -23,11 +23,11 @@ class LeadController extends Controller
     {
         $this->authorize('viewAny', Lead::class);
 
-        $search = $request->input('search');
+        $search = $request->string('search')->toString();
 
         $leads = Lead::query()
             ->with(['assignee:id,name', 'business:id,name'])
-            ->when($search, function ($query, $search) {
+            ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('company', 'like', "%{$search}%")

@@ -19,11 +19,11 @@ class BusinessController extends Controller
     {
         $this->authorize('viewAny', Business::class);
 
-        $search = $request->input('search');
+        $search = $request->string('search')->toString();
 
         $businesses = Business::query()
             ->with('creator:id,name')
-            ->when($search, function ($query, $search) {
+            ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%")
