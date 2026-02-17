@@ -19,6 +19,13 @@ Both Leads and Customers support two entity types:
 - **Individual** - Personal contacts with first name, last name, email, and phone
 - **Business** - Company entities with company name and multiple contact persons
 
+### Search & Filtering
+
+Both Leads and Customers support search functionality:
+- Search by first name, last name, company name
+- Search by email or phone
+- Results are paginated
+
 ### Lead Lifecycle
 
 Leads progress through the following statuses:
