@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\EntityType;
 use App\Models\Lead;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,6 +23,7 @@ class StoreLeadRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'entity_type' => ['required', Rule::enum(EntityType::class)],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'company' => ['nullable', 'string', 'max:255'],

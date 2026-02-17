@@ -1,59 +1,238 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CRM Base Kit
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel-based CRM starter kit with Leads & Customers management, built with Inertia.js and React.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Core Modules
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Leads Management** - Track potential customers through the sales pipeline
+- **Customers Management** - Manage converted customers and their lifecycle
+- **Contact Persons** - Multiple contacts per business entity
+- **Users & Roles** - Role-based access control with granular permissions
+- **Businesses** - Multi-tenant business management
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Entity Types
 
-## Learning Laravel
+Both Leads and Customers support two entity types:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Individual** - Personal contacts with first name, last name, email, and phone
+- **Business** - Company entities with company name and multiple contact persons
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Lead Lifecycle
 
-## Laravel Sponsors
+Leads progress through the following statuses:
+- `new` - Newly created lead
+- `contacted` - Initial contact made
+- `qualified` - Lead qualified for sales
+- `proposal` - Proposal sent
+- `negotiation` - In negotiation
+- `won` - Deal closed successfully
+- `lost` - Deal lost
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Lead sources tracked:
+- `website`, `referral`, `social_media`, `advertisement`, `cold_call`, `trade_show`, `other`
 
-### Premium Partners
+### Lead to Customer Conversion
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+When a lead reaches "won" status, it can be converted to a customer:
+- All lead data is copied to the new customer record
+- Contact persons are transferred for business entities
+- Original lead is marked as converted with reference to the customer
+- Converted leads cannot be modified or re-converted
 
-## Contributing
+### Customer Lifecycle
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Customer statuses:
+- `active` - Active customer
+- `inactive` - Temporarily inactive
+- `churned` - Customer has left
 
-## Code of Conduct
+### Data Immutability
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+To maintain data integrity, certain fields become immutable after creation:
+- **Email** - Cannot be changed once set (can be set if originally null)
+- **Phone** - Cannot be changed once set (can be set if originally null)
 
-## Security Vulnerabilities
+This ensures contact information remains consistent for audit trails and historical records.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Contact Persons
+
+Business entities (leads and customers) can have multiple contact persons:
+- Each contact has: name, email, phone, position, notes
+- One contact can be marked as **primary**
+- Contacts are automatically transferred during lead conversion
+- Contacts are cascade-deleted when the parent entity is deleted
+
+## Tech Stack
+
+- **Backend**: Laravel 11, PHP 8.2+
+- **Frontend**: React 18, Inertia.js
+- **Styling**: Tailwind CSS
+- **Database**: MySQL/SQLite
+- **Authentication**: Laravel Breeze
+- **Authorization**: Spatie Laravel Permission
+
+## Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd CRMBaseKit
+
+# Install dependencies
+composer install
+npm install
+
+# Configure environment
+cp .env.example .env
+php artisan key:generate
+
+# Run migrations and seed data
+php artisan migrate --seed
+
+# Build assets
+npm run build
+
+# Start development server
+php artisan serve
+```
+
+## Default Users
+
+After seeding, the following users are available:
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@example.com | password | Super Admin |
+| manager@example.com | password | Manager |
+| sales@example.com | password | Sales |
+| user@example.com | password | User |
+
+## Roles & Permissions
+
+### Super Admin
+- Full access to all features
+- Can manage users and roles
+- Can delete any record
+
+### Admin
+- Manage users, businesses, leads, customers
+- Cannot delete users
+
+### Manager
+- View and manage leads and customers
+- View users and businesses
+- Cannot delete records
+
+### Sales
+- Create and edit leads and customers
+- Manage contact persons
+- Cannot delete records
+
+### User
+- View-only access to leads and customers
+
+## API Routes
+
+### Leads
+- `GET /leads` - List all leads
+- `GET /leads/create` - Show create form
+- `POST /leads` - Store new lead
+- `GET /leads/{lead}` - Show lead details
+- `GET /leads/{lead}/edit` - Show edit form
+- `PUT /leads/{lead}` - Update lead
+- `DELETE /leads/{lead}` - Delete lead
+- `GET /leads/{lead}/convert` - Show conversion form
+- `POST /leads/{lead}/convert` - Convert to customer
+
+### Customers
+- `GET /customers` - List all customers
+- `GET /customers/create` - Show create form
+- `POST /customers` - Store new customer
+- `GET /customers/{customer}` - Show customer details
+- `GET /customers/{customer}/edit` - Show edit form
+- `PUT /customers/{customer}` - Update customer
+- `DELETE /customers/{customer}` - Delete customer
+
+### Contact Persons
+- `GET /leads/{lead}/contacts/create` - Create contact for lead
+- `POST /leads/{lead}/contacts` - Store contact for lead
+- `GET /customers/{customer}/contacts/create` - Create contact for customer
+- `POST /customers/{customer}/contacts` - Store contact for customer
+- `GET /contacts/{contact}/edit` - Edit contact
+- `PUT /contacts/{contact}` - Update contact
+- `DELETE /contacts/{contact}` - Delete contact
+- `POST /contacts/{contact}/set-primary` - Set as primary contact
+
+## Testing
+
+```bash
+# Run all tests
+php artisan test
+
+# Run specific test file
+php artisan test tests/Feature/LeadTest.php
+
+# Run with coverage
+php artisan test --coverage
+```
+
+## Project Structure
+
+```
+app/
+├── Enums/
+│   ├── EntityType.php          # Individual/Business enum
+│   ├── LeadStatus.php          # Lead status enum
+│   ├── LeadSource.php          # Lead source enum
+│   └── CustomerStatus.php      # Customer status enum
+├── Exceptions/
+│   └── ImmutableFieldException.php
+├── Http/
+│   ├── Controllers/
+│   │   ├── LeadController.php
+│   │   ├── CustomerController.php
+│   │   └── ContactPersonController.php
+│   └── Requests/
+│       ├── StoreLeadRequest.php
+│       ├── UpdateLeadRequest.php
+│       ├── StoreCustomerRequest.php
+│       ├── UpdateCustomerRequest.php
+│       ├── StoreContactPersonRequest.php
+│       └── UpdateContactPersonRequest.php
+├── Models/
+│   ├── Lead.php
+│   ├── Customer.php
+│   └── ContactPerson.php
+├── Policies/
+│   ├── LeadPolicy.php
+│   ├── CustomerPolicy.php
+│   └── ContactPersonPolicy.php
+└── Services/
+    └── ContactPersonService.php
+
+resources/js/
+├── Components/
+│   ├── ContactPersonForm.jsx
+│   └── ContactPersonList.jsx
+└── Pages/
+    ├── Leads/
+    │   ├── Index.jsx
+    │   ├── Create.jsx
+    │   ├── Show.jsx
+    │   ├── Edit.jsx
+    │   └── Convert.jsx
+    ├── Customers/
+    │   ├── Index.jsx
+    │   ├── Create.jsx
+    │   ├── Show.jsx
+    │   └── Edit.jsx
+    └── ContactPeople/
+        ├── Create.jsx
+        └── Edit.jsx
+```
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

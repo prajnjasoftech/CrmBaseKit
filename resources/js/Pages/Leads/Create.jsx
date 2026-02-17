@@ -1,9 +1,10 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
 
-export default function Create({ statuses, sources, users, businesses, auth }) {
+export default function Create({ statuses, sources, entityTypes, users, businesses, auth }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
+        entity_type: 'individual',
         email: '',
         phone: '',
         company: '',
@@ -33,34 +34,73 @@ export default function Create({ statuses, sources, users, businesses, auth }) {
                     <form onSubmit={handleSubmit}>
                         <div className="admin-card mb-4">
                             <div className="card-header">
-                                <h2 className="card-title">Lead Information</h2>
+                                <h2 className="card-title">Entity Type</h2>
+                            </div>
+                            <div className="card-body">
+                                <div className="d-flex gap-4">
+                                    {Object.entries(entityTypes).map(([value, label]) => (
+                                        <div className="form-check" key={value}>
+                                            <input
+                                                type="radio"
+                                                className="form-check-input"
+                                                id={`entity-type-${value}`}
+                                                checked={data.entity_type === value}
+                                                onChange={() => setData('entity_type', value)}
+                                            />
+                                            <label className="form-check-label" htmlFor={`entity-type-${value}`}>
+                                                {label}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                                {errors.entity_type && <div className="text-danger small mt-1">{errors.entity_type}</div>}
+                                <small className="text-muted d-block mt-2">
+                                    {data.entity_type === 'individual'
+                                        ? 'For individual people or sole proprietors.'
+                                        : 'For companies, organizations, or business entities. You can add contact persons after creation.'}
+                                </small>
+                            </div>
+                        </div>
+
+                        <div className="admin-card mb-4">
+                            <div className="card-header">
+                                <h2 className="card-title">
+                                    {data.entity_type === 'individual' ? 'Personal Information' : 'Business Information'}
+                                </h2>
                             </div>
                             <div className="card-body">
                                 <div className="row g-3">
                                     <div className="col-md-6">
-                                        <label className="form-label">Name *</label>
+                                        <label className="form-label">
+                                            {data.entity_type === 'individual' ? 'Name *' : 'Business Name *'}
+                                        </label>
                                         <input
                                             type="text"
                                             className={`form-control ${errors.name ? 'is-invalid' : ''}`}
                                             value={data.name}
                                             onChange={(e) => setData('name', e.target.value)}
+                                            placeholder={data.entity_type === 'individual' ? 'John Doe' : 'Acme Corporation'}
                                         />
                                         {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                                     </div>
 
-                                    <div className="col-md-6">
-                                        <label className="form-label">Company</label>
-                                        <input
-                                            type="text"
-                                            className={`form-control ${errors.company ? 'is-invalid' : ''}`}
-                                            value={data.company}
-                                            onChange={(e) => setData('company', e.target.value)}
-                                        />
-                                        {errors.company && <div className="invalid-feedback">{errors.company}</div>}
-                                    </div>
+                                    {data.entity_type === 'individual' && (
+                                        <div className="col-md-6">
+                                            <label className="form-label">Company</label>
+                                            <input
+                                                type="text"
+                                                className={`form-control ${errors.company ? 'is-invalid' : ''}`}
+                                                value={data.company}
+                                                onChange={(e) => setData('company', e.target.value)}
+                                            />
+                                            {errors.company && <div className="invalid-feedback">{errors.company}</div>}
+                                        </div>
+                                    )}
 
                                     <div className="col-md-6">
-                                        <label className="form-label">Email</label>
+                                        <label className="form-label">
+                                            {data.entity_type === 'individual' ? 'Email' : 'Business Email'}
+                                        </label>
                                         <input
                                             type="email"
                                             className={`form-control ${errors.email ? 'is-invalid' : ''}`}
@@ -71,7 +111,9 @@ export default function Create({ statuses, sources, users, businesses, auth }) {
                                     </div>
 
                                     <div className="col-md-6">
-                                        <label className="form-label">Phone</label>
+                                        <label className="form-label">
+                                            {data.entity_type === 'individual' ? 'Phone' : 'Business Phone'}
+                                        </label>
                                         <input
                                             type="tel"
                                             className={`form-control ${errors.phone ? 'is-invalid' : ''}`}

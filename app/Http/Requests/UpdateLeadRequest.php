@@ -22,8 +22,6 @@ class UpdateLeadRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
             'company' => ['nullable', 'string', 'max:255'],
             'source' => ['required', Rule::in(array_keys(Lead::getSources()))],
             'status' => ['required', Rule::in(array_keys(Lead::getStatuses()))],

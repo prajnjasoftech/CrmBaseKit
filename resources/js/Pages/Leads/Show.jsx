@@ -1,7 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
+import ContactPersonList from '../../Components/ContactPersonList';
 
-export default function Show({ lead, statuses, sources, auth }) {
+export default function Show({ lead, statuses, sources, entityTypes, auth }) {
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this lead?')) {
             router.delete(`/leads/${lead.id}`);
@@ -19,6 +20,7 @@ export default function Show({ lead, statuses, sources, auth }) {
     };
 
     const canConvert = lead.status === 'won' && !lead.customer;
+    const isBusiness = lead.entity_type === 'business';
 
     return (
         <AdminLayout user={auth?.user}>
@@ -55,20 +57,28 @@ export default function Show({ lead, statuses, sources, auth }) {
                 <div className="col-lg-8">
                     <div className="admin-card mb-4">
                         <div className="card-header">
-                            <h2 className="card-title">Lead Information</h2>
+                            <h2 className="card-title">
+                                {isBusiness ? 'Business Information' : 'Lead Information'}
+                            </h2>
                         </div>
                         <div className="card-body">
                             <div className="row g-4">
                                 <div className="col-md-6">
-                                    <label className="form-label text-muted small mb-1">Name</label>
+                                    <label className="form-label text-muted small mb-1">
+                                        {isBusiness ? 'Business Name' : 'Name'}
+                                    </label>
                                     <div className="fw-medium">{lead.name}</div>
                                 </div>
+                                {!isBusiness && (
+                                    <div className="col-md-6">
+                                        <label className="form-label text-muted small mb-1">Company</label>
+                                        <div>{lead.company || '-'}</div>
+                                    </div>
+                                )}
                                 <div className="col-md-6">
-                                    <label className="form-label text-muted small mb-1">Company</label>
-                                    <div>{lead.company || '-'}</div>
-                                </div>
-                                <div className="col-md-6">
-                                    <label className="form-label text-muted small mb-1">Email</label>
+                                    <label className="form-label text-muted small mb-1">
+                                        {isBusiness ? 'Business Email' : 'Email'}
+                                    </label>
                                     <div>
                                         {lead.email ? (
                                             <a href={`mailto:${lead.email}`}>{lead.email}</a>
@@ -76,7 +86,9 @@ export default function Show({ lead, statuses, sources, auth }) {
                                     </div>
                                 </div>
                                 <div className="col-md-6">
-                                    <label className="form-label text-muted small mb-1">Phone</label>
+                                    <label className="form-label text-muted small mb-1">
+                                        {isBusiness ? 'Business Phone' : 'Phone'}
+                                    </label>
                                     <div>
                                         {lead.phone ? (
                                             <a href={`tel:${lead.phone}`}>{lead.phone}</a>
@@ -108,6 +120,26 @@ export default function Show({ lead, statuses, sources, auth }) {
                             </div>
                         </div>
                     </div>
+
+                    {isBusiness && (
+                        <div className="admin-card mb-4">
+                            <div className="card-header d-flex justify-content-between align-items-center">
+                                <h2 className="card-title mb-0">Contact Persons</h2>
+                                <Link href={`/leads/${lead.id}/contacts/create`} className="btn btn-primary btn-sm">
+                                    <i className="bi bi-plus me-1"></i>
+                                    Add Contact
+                                </Link>
+                            </div>
+                            <div className="card-body">
+                                <ContactPersonList
+                                    contacts={lead.contact_people || []}
+                                    parentType="lead"
+                                    parentId={lead.id}
+                                    canManage={true}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {lead.notes && (
                         <div className="admin-card mb-4">
@@ -141,6 +173,17 @@ export default function Show({ lead, statuses, sources, auth }) {
                 </div>
 
                 <div className="col-lg-4">
+                    <div className="admin-card mb-4">
+                        <div className="card-header">
+                            <h2 className="card-title">Entity Type</h2>
+                        </div>
+                        <div className="card-body">
+                            <span className={`badge ${isBusiness ? 'bg-info' : 'bg-secondary'}`}>
+                                {entityTypes[lead.entity_type] || lead.entity_type}
+                            </span>
+                        </div>
+                    </div>
+
                     <div className="admin-card mb-4">
                         <div className="card-header">
                             <h2 className="card-title">Status</h2>

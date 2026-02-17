@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\ContactPersonController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\UserController;
@@ -54,6 +55,26 @@ Route::middleware('auth')->group(function (): void {
     Route::post('leads/{lead}/convert', [LeadController::class, 'convert'])->name('leads.convert.store');
     Route::resource('leads', LeadController::class);
 
+    // Lead contact persons
+    Route::prefix('leads/{lead}')->name('leads.contacts.')->group(function (): void {
+        Route::get('contacts/create', [ContactPersonController::class, 'createForLead'])->name('create');
+        Route::post('contacts', [ContactPersonController::class, 'storeForLead'])->name('store');
+        Route::get('contacts/{contact}/edit', [ContactPersonController::class, 'editForLead'])->name('edit');
+        Route::put('contacts/{contact}', [ContactPersonController::class, 'updateForLead'])->name('update');
+        Route::delete('contacts/{contact}', [ContactPersonController::class, 'destroyForLead'])->name('destroy');
+        Route::post('contacts/{contact}/set-primary', [ContactPersonController::class, 'setPrimaryForLead'])->name('set-primary');
+    });
+
     // Customer routes
     Route::resource('customers', CustomerController::class);
+
+    // Customer contact persons
+    Route::prefix('customers/{customer}')->name('customers.contacts.')->group(function (): void {
+        Route::get('contacts/create', [ContactPersonController::class, 'createForCustomer'])->name('create');
+        Route::post('contacts', [ContactPersonController::class, 'storeForCustomer'])->name('store');
+        Route::get('contacts/{contact}/edit', [ContactPersonController::class, 'editForCustomer'])->name('edit');
+        Route::put('contacts/{contact}', [ContactPersonController::class, 'updateForCustomer'])->name('update');
+        Route::delete('contacts/{contact}', [ContactPersonController::class, 'destroyForCustomer'])->name('destroy');
+        Route::post('contacts/{contact}/set-primary', [ContactPersonController::class, 'setPrimaryForCustomer'])->name('set-primary');
+    });
 });

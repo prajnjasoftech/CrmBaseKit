@@ -49,6 +49,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit customers',
             'delete customers',
 
+            // Contact Person Management
+            'manage contact persons',
+
             // News Board
             'view news',
             'create news',
@@ -78,6 +81,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view businesses', 'create businesses', 'edit businesses', 'delete businesses',
             'view leads', 'create leads', 'edit leads', 'delete leads', 'convert leads',
             'view customers', 'create customers', 'edit customers', 'delete customers',
+            'manage contact persons',
             'view news', 'create news', 'edit news', 'delete news', 'publish news',
             'view settings',
         ]);
@@ -89,6 +93,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view businesses', 'create businesses', 'edit businesses',
             'view leads', 'create leads', 'edit leads', 'convert leads',
             'view customers', 'create customers', 'edit customers',
+            'manage contact persons',
             'view news', 'create news', 'edit news',
         ]);
 
@@ -97,6 +102,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $salesRole->givePermissionTo([
             'view leads', 'create leads', 'edit leads', 'convert leads',
             'view customers', 'create customers', 'edit customers',
+            'manage contact persons',
             'view news',
         ]);
 

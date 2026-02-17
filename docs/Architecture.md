@@ -44,31 +44,45 @@ CRM Base Kit is a production-grade starter kit built with Laravel 12, React 19, 
 
 ### 4. Leads Module
 - Full CRUD for sales leads
+- **Entity Types**: Individual (person) or Business (company)
 - Pipeline status tracking (new, contacted, qualified, proposal, negotiation, won, lost)
-- Lead source tracking (website, referral, advertisement, cold call, social media, other)
+- Lead source tracking (website, referral, advertisement, cold call, social media, trade_show, other)
 - User assignment for sales ownership
 - Business association
-- Lead-to-Customer conversion workflow
+- **Contact Persons**: Multiple contacts per business lead with primary designation
+- Lead-to-Customer conversion workflow with contact person transfer
+- **Immutable Fields**: Email and phone cannot be changed after creation
 - Soft deletes for data retention
 
 ### 5. Customers Module
 - Full CRUD for customers
+- **Entity Types**: Individual (person) or Business (company)
 - Status management (active, inactive, churned)
 - Full address management
 - Conversion tracking from leads
 - User assignment for account management
 - Business association
+- **Contact Persons**: Multiple contacts per business customer with primary designation
+- **Immutable Fields**: Email and phone cannot be changed after creation
 - Soft deletes for data retention
 
-### 6. RBAC (Role-Based Access Control)
+### 6. Contact Persons Module
+- Full CRUD for contact persons
+- Associated with business-type leads and customers
+- Fields: name, email, phone, position, notes
+- Primary contact designation (one per entity)
+- Automatic transfer during lead conversion
+- Cascade delete when parent entity is deleted
+
+### 7. RBAC (Role-Based Access Control)
 5 predefined roles with granular permissions:
 
 | Role | Permissions |
 |------|-------------|
 | super-admin | Full system access |
-| admin | Manage users, businesses, leads, customers, news |
-| manager | View users, manage businesses, leads, customers |
-| sales | Manage leads and customers only |
+| admin | Manage users, businesses, leads, customers, contact persons, news |
+| manager | View users, manage businesses, leads, customers, contact persons |
+| sales | Manage leads, customers, and contact persons |
 | user | View-only access to leads, customers, news |
 
 ## Directory Structure
@@ -76,10 +90,18 @@ CRM Base Kit is a production-grade starter kit built with Laravel 12, React 19, 
 ```
 CRMBaseKit/
 ├── app/
+│   ├── Enums/
+│   │   ├── EntityType.php         # Individual/Business enum
+│   │   ├── LeadStatus.php         # Lead status enum
+│   │   ├── LeadSource.php         # Lead source enum
+│   │   └── CustomerStatus.php     # Customer status enum
+│   ├── Exceptions/
+│   │   └── ImmutableFieldException.php  # Thrown when modifying immutable fields
 │   ├── Http/
 │   │   ├── Controllers/
 │   │   │   ├── Auth/              # Authentication controllers
 │   │   │   ├── BusinessController.php
+│   │   │   ├── ContactPersonController.php
 │   │   │   ├── CustomerController.php
 │   │   │   ├── LeadController.php
 │   │   │   └── UserController.php
@@ -89,23 +111,29 @@ CRMBaseKit/
 │   │       ├── Auth/              # Auth form requests
 │   │       ├── ConvertLeadRequest.php
 │   │       ├── StoreBusinessRequest.php
+│   │       ├── StoreContactPersonRequest.php
 │   │       ├── StoreCustomerRequest.php
 │   │       ├── StoreLeadRequest.php
 │   │       ├── StoreUserRequest.php
 │   │       ├── UpdateBusinessRequest.php
+│   │       ├── UpdateContactPersonRequest.php
 │   │       ├── UpdateCustomerRequest.php
 │   │       ├── UpdateLeadRequest.php
 │   │       └── UpdateUserRequest.php
 │   ├── Models/
 │   │   ├── Business.php
+│   │   ├── ContactPerson.php
 │   │   ├── Customer.php
 │   │   ├── Lead.php
 │   │   └── User.php
-│   └── Policies/
-│       ├── BusinessPolicy.php
-│       ├── CustomerPolicy.php
-│       ├── LeadPolicy.php
-│       └── UserPolicy.php
+│   ├── Policies/
+│   │   ├── BusinessPolicy.php
+│   │   ├── ContactPersonPolicy.php
+│   │   ├── CustomerPolicy.php
+│   │   ├── LeadPolicy.php
+│   │   └── UserPolicy.php
+│   └── Services/
+│       └── ContactPersonService.php  # Business logic for contact persons
 ├── database/
 │   ├── factories/
 │   │   ├── BusinessFactory.php
@@ -128,6 +156,8 @@ CRMBaseKit/
 │   │   └── app.scss
 │   └── js/
 │       ├── Components/
+│       │   ├── ContactPersonForm.jsx   # Reusable contact form
+│       │   ├── ContactPersonList.jsx   # Contact list with actions
 │       │   ├── Sidebar.jsx
 │       │   ├── Header.jsx
 │       │   └── Footer.jsx
@@ -145,6 +175,9 @@ CRMBaseKit/
 │           │   ├── Create.jsx
 │           │   ├── Edit.jsx
 │           │   └── Show.jsx
+│           ├── ContactPeople/
+│           │   ├── Create.jsx
+│           │   └── Edit.jsx
 │           ├── Customers/
 │           │   ├── Index.jsx
 │           │   ├── Create.jsx
@@ -168,6 +201,7 @@ CRMBaseKit/
     └── Feature/
         ├── AuthTest.php
         ├── BusinessTest.php
+        ├── ContactPersonTest.php
         ├── CustomerTest.php
         ├── LeadTest.php
         └── UserTest.php
@@ -277,8 +311,9 @@ const handleSubmit = (e) => {
 |-------|-------------|
 | users | System users with authentication |
 | businesses | Registered business entities |
-| leads | Sales leads with pipeline status |
-| customers | Converted leads and direct customers |
+| leads | Sales leads with pipeline status and entity_type |
+| customers | Converted leads and direct customers with entity_type |
+| contact_persons | Contact persons for business leads/customers |
 | roles | Spatie Permission roles |
 | permissions | Spatie Permission permissions |
 | model_has_roles | Role-user pivot |
@@ -287,6 +322,27 @@ const handleSubmit = (e) => {
 | password_reset_tokens | Password reset tracking |
 | sessions | Session management |
 
+### Entity Type Support
+
+Both `leads` and `customers` tables include:
+- `entity_type` - ENUM('individual', 'business')
+- `first_name`, `last_name` - For individual entities
+- `company_name` - For business entities
+- `email`, `phone` - Contact info (immutable once set)
+
+### Contact Persons Table
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| contactable_type | string | 'App\Models\Lead' or 'App\Models\Customer' |
+| contactable_id | bigint | ID of parent lead/customer |
+| name | string | Contact person's full name |
+| email | string | Contact email (nullable) |
+| phone | string | Contact phone (nullable) |
+| position | string | Job title (nullable) |
+| is_primary | boolean | Whether this is the primary contact |
+| notes | text | Additional notes (nullable) |
+
 ### Lead Status Flow
 ```
 new → contacted → qualified → proposal → negotiation → won/lost
@@ -294,6 +350,7 @@ new → contacted → qualified → proposal → negotiation → won/lost
                                                    (convert)
                                                         ↓
                                                    customer
+                                            (contact persons copied)
 ```
 
 ### Conventions

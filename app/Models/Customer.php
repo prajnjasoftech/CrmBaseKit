@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\EntityType;
+use App\Exceptions\ImmutableFieldException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property EntityType $entity_type
+ */
 class Customer extends Model
 {
     /** @use HasFactory<\Database\Factories\CustomerFactory> */
@@ -20,8 +26,16 @@ class Customer extends Model
 
     public const STATUS_CHURNED = 'churned';
 
+    /**
+     * Fields that cannot be modified after creation.
+     *
+     * @var array<int, string>
+     */
+    protected static array $immutableFields = ['email', 'phone'];
+
     protected $fillable = [
         'name',
+        'entity_type',
         'email',
         'phone',
         'company',
@@ -36,6 +50,31 @@ class Customer extends Model
         'assigned_to',
         'business_id',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'entity_type' => EntityType::class,
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(function (Customer $customer): void {
+            foreach (self::$immutableFields as $field) {
+                if ($customer->isDirty($field) && $customer->getOriginal($field) !== null) {
+                    throw ImmutableFieldException::forField($field);
+                }
+            }
+        });
+
+        static::deleting(function (Customer $customer): void {
+            $customer->contactPeople()->delete();
+        });
+    }
 
     /**
      * @return array<string, string>
@@ -73,6 +112,14 @@ class Customer extends Model
         return $this->belongsTo(Lead::class, 'converted_from_lead_id');
     }
 
+    /**
+     * @return MorphMany<ContactPerson, $this>
+     */
+    public function contactPeople(): MorphMany
+    {
+        return $this->morphMany(ContactPerson::class, 'contactable');
+    }
+
     public function getFullAddressAttribute(): string
     {
         $parts = array_filter([
@@ -89,5 +136,15 @@ class Customer extends Model
     public function wasConvertedFromLead(): bool
     {
         return $this->converted_from_lead_id !== null;
+    }
+
+    public function isIndividual(): bool
+    {
+        return $this->entity_type === EntityType::Individual;
+    }
+
+    public function isBusiness(): bool
+    {
+        return $this->entity_type === EntityType::Business;
     }
 }
