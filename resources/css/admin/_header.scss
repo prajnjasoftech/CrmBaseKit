@@ -1,0 +1,159 @@
+// Admin Header
+
+.admin-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: $sidebar-width;
+  height: $header-height;
+  background: $header-bg;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 1030;
+  transition: left 0.3s ease;
+
+  .sidebar-collapsed & {
+    left: $sidebar-collapsed-width;
+  }
+
+  @media (max-width: 991.98px) {
+    left: 0;
+  }
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 1.5rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-search {
+  position: relative;
+  width: 300px;
+
+  .search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: $border-radius;
+    font-size: 0.875rem;
+    background: $light;
+    transition: $transition-base;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    }
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $secondary;
+  }
+
+  @media (max-width: 767.98px) {
+    display: none;
+  }
+}
+
+.hamburger-menu {
+  display: none;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  color: $body-color;
+  cursor: pointer;
+
+  @media (max-width: 991.98px) {
+    display: block;
+  }
+
+  i {
+    font-size: 1.5rem;
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: $border-radius;
+  background: none;
+  border: none;
+  color: $secondary;
+  cursor: pointer;
+  position: relative;
+  transition: $transition-base;
+
+  &:hover {
+    background: $light;
+    color: $body-color;
+  }
+
+  .badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $danger;
+  }
+}
+
+.header-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:hover {
+    background: $light;
+  }
+
+  .profile-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .profile-info {
+    @media (max-width: 767.98px) {
+      display: none;
+    }
+
+    .profile-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: $body-color;
+    }
+
+    .profile-role {
+      font-size: 0.75rem;
+      color: $secondary;
+    }
+  }
+}

@@ -1,0 +1,262 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import AdminLayout from '../../Layouts/AdminLayout';
+
+export default function Convert({ lead, customerStatuses, users, businesses, countries, auth }) {
+    const { data, setData, post, processing, errors } = useForm({
+        name: lead.name || '',
+        email: lead.email || '',
+        phone: lead.phone || '',
+        company: lead.company || '',
+        address: '',
+        city: '',
+        state: '',
+        postal_code: '',
+        country: 'US',
+        status: 'active',
+        notes: lead.notes || '',
+        assigned_to: lead.assigned_to || '',
+        business_id: lead.business_id || '',
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        post(`/leads/${lead.id}/convert`);
+    };
+
+    return (
+        <AdminLayout user={auth?.user}>
+            <Head title={`Convert Lead - ${lead.name}`} />
+
+            <div className="page-header">
+                <h1 className="page-title">Convert Lead to Customer</h1>
+                <p className="page-subtitle">Converting: {lead.name}</p>
+            </div>
+
+            <div className="alert alert-info mb-4">
+                <i className="bi bi-info-circle me-2"></i>
+                Review and update the customer information below. The lead data has been pre-filled.
+            </div>
+
+            <div className="row">
+                <div className="col-lg-8">
+                    <form onSubmit={handleSubmit}>
+                        <div className="admin-card mb-4">
+                            <div className="card-header">
+                                <h2 className="card-title">Customer Information</h2>
+                            </div>
+                            <div className="card-body">
+                                <div className="row g-3">
+                                    <div className="col-md-6">
+                                        <label className="form-label">Name *</label>
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                                            value={data.name}
+                                            onChange={(e) => setData('name', e.target.value)}
+                                        />
+                                        {errors.name && <div className="invalid-feedback">{errors.name}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Company</label>
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.company ? 'is-invalid' : ''}`}
+                                            value={data.company}
+                                            onChange={(e) => setData('company', e.target.value)}
+                                        />
+                                        {errors.company && <div className="invalid-feedback">{errors.company}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Email</label>
+                                        <input
+                                            type="email"
+                                            className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                                            value={data.email}
+                                            onChange={(e) => setData('email', e.target.value)}
+                                        />
+                                        {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Phone</label>
+                                        <input
+                                            type="tel"
+                                            className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
+                                            value={data.phone}
+                                            onChange={(e) => setData('phone', e.target.value)}
+                                        />
+                                        {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Assigned To</label>
+                                        <select
+                                            className={`form-select ${errors.assigned_to ? 'is-invalid' : ''}`}
+                                            value={data.assigned_to}
+                                            onChange={(e) => setData('assigned_to', e.target.value)}
+                                        >
+                                            <option value="">Unassigned</option>
+                                            {users.map((user) => (
+                                                <option key={user.id} value={user.id}>{user.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.assigned_to && <div className="invalid-feedback">{errors.assigned_to}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Associated Business</label>
+                                        <select
+                                            className={`form-select ${errors.business_id ? 'is-invalid' : ''}`}
+                                            value={data.business_id}
+                                            onChange={(e) => setData('business_id', e.target.value)}
+                                        >
+                                            <option value="">None</option>
+                                            {businesses.map((business) => (
+                                                <option key={business.id} value={business.id}>{business.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.business_id && <div className="invalid-feedback">{errors.business_id}</div>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="admin-card mb-4">
+                            <div className="card-header">
+                                <h2 className="card-title">Address</h2>
+                            </div>
+                            <div className="card-body">
+                                <div className="row g-3">
+                                    <div className="col-12">
+                                        <label className="form-label">Street Address</label>
+                                        <textarea
+                                            className={`form-control ${errors.address ? 'is-invalid' : ''}`}
+                                            rows="2"
+                                            value={data.address}
+                                            onChange={(e) => setData('address', e.target.value)}
+                                        />
+                                        {errors.address && <div className="invalid-feedback">{errors.address}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">City</label>
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.city ? 'is-invalid' : ''}`}
+                                            value={data.city}
+                                            onChange={(e) => setData('city', e.target.value)}
+                                        />
+                                        {errors.city && <div className="invalid-feedback">{errors.city}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">State / Province</label>
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.state ? 'is-invalid' : ''}`}
+                                            value={data.state}
+                                            onChange={(e) => setData('state', e.target.value)}
+                                        />
+                                        {errors.state && <div className="invalid-feedback">{errors.state}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Postal Code</label>
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.postal_code ? 'is-invalid' : ''}`}
+                                            value={data.postal_code}
+                                            onChange={(e) => setData('postal_code', e.target.value)}
+                                        />
+                                        {errors.postal_code && <div className="invalid-feedback">{errors.postal_code}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Country</label>
+                                        <select
+                                            className={`form-select ${errors.country ? 'is-invalid' : ''}`}
+                                            value={data.country}
+                                            onChange={(e) => setData('country', e.target.value)}
+                                        >
+                                            {Object.entries(countries).map(([code, name]) => (
+                                                <option key={code} value={code}>{name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.country && <div className="invalid-feedback">{errors.country}</div>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="admin-card mb-4">
+                            <div className="card-header">
+                                <h2 className="card-title">Notes</h2>
+                            </div>
+                            <div className="card-body">
+                                <textarea
+                                    className={`form-control ${errors.notes ? 'is-invalid' : ''}`}
+                                    rows="4"
+                                    value={data.notes}
+                                    onChange={(e) => setData('notes', e.target.value)}
+                                    placeholder="Add any relevant notes about this customer..."
+                                />
+                                {errors.notes && <div className="invalid-feedback">{errors.notes}</div>}
+                            </div>
+                        </div>
+
+                        <div className="d-flex justify-content-end gap-2">
+                            <Link href={`/leads/${lead.id}`} className="btn btn-outline-secondary">
+                                Cancel
+                            </Link>
+                            <button type="submit" className="btn btn-success" disabled={processing}>
+                                {processing ? 'Converting...' : 'Convert to Customer'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div className="col-lg-4">
+                    <div className="admin-card mb-4">
+                        <div className="card-header">
+                            <h2 className="card-title">Customer Status</h2>
+                        </div>
+                        <div className="card-body">
+                            {Object.entries(customerStatuses).map(([value, label]) => (
+                                <div className="form-check mb-2" key={value}>
+                                    <input
+                                        type="radio"
+                                        className="form-check-input"
+                                        id={`status-${value}`}
+                                        checked={data.status === value}
+                                        onChange={() => setData('status', value)}
+                                    />
+                                    <label className="form-check-label" htmlFor={`status-${value}`}>
+                                        {label}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="admin-card">
+                        <div className="card-header">
+                            <h2 className="card-title">Original Lead</h2>
+                        </div>
+                        <div className="card-body">
+                            <dl className="mb-0">
+                                <dt className="text-muted small">Lead Name</dt>
+                                <dd>{lead.name}</dd>
+                                <dt className="text-muted small">Source</dt>
+                                <dd>{lead.source}</dd>
+                                <dt className="text-muted small">Created At</dt>
+                                <dd className="mb-0">{new Date(lead.created_at).toLocaleDateString()}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </AdminLayout>
+    );
+}

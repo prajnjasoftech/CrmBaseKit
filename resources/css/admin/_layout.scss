@@ -1,0 +1,62 @@
+// Admin Layout
+
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: $sidebar-width;
+  transition: margin-left 0.3s ease;
+
+  .sidebar-collapsed & {
+    margin-left: $sidebar-collapsed-width;
+  }
+}
+
+.admin-content {
+  flex: 1;
+  padding: 1.5rem;
+  margin-top: $header-height;
+}
+
+// Page header
+.page-header {
+  margin-bottom: 1.5rem;
+
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: $dark;
+    margin-bottom: 0.25rem;
+  }
+
+  .page-subtitle {
+    color: $secondary;
+    font-size: 0.875rem;
+  }
+}
+
+// Responsive
+@media (max-width: 991.98px) {
+  .admin-main {
+    margin-left: 0;
+  }
+
+  .admin-sidebar {
+    transform: translateX(-100%);
+
+    &.show {
+      transform: translateX(0);
+    }
+  }
+}

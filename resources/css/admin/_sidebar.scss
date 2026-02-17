@@ -1,0 +1,142 @@
+// Admin Sidebar
+
+.admin-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: $sidebar-width;
+  height: 100vh;
+  background: $sidebar-bg;
+  color: $sidebar-color;
+  z-index: 1040;
+  transition: width 0.3s ease, transform 0.3s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  .sidebar-collapsed & {
+    width: $sidebar-collapsed-width;
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  height: $header-height;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #fff;
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      margin-left: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+
+      .sidebar-collapsed & {
+        display: none;
+      }
+    }
+  }
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+}
+
+.nav-section {
+  margin-bottom: 1rem;
+
+  .nav-section-title {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.4);
+
+    .sidebar-collapsed & {
+      display: none;
+    }
+  }
+}
+
+.nav-item {
+  .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.625rem 1.25rem;
+    color: $sidebar-color;
+    text-decoration: none;
+    transition: $transition-base;
+    border-left: 3px solid transparent;
+
+    &:hover {
+      color: $sidebar-active-color;
+      background: $sidebar-active-bg;
+    }
+
+    &.active {
+      color: $sidebar-active-color;
+      background: $sidebar-active-bg;
+      border-left-color: $primary;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-right: 0.75rem;
+
+      .sidebar-collapsed & {
+        margin-right: 0;
+      }
+    }
+
+    .nav-text {
+      .sidebar-collapsed & {
+        display: none;
+      }
+    }
+
+    .nav-badge {
+      margin-left: auto;
+
+      .sidebar-collapsed & {
+        display: none;
+      }
+    }
+  }
+}
+
+// Sidebar toggle button
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 1050;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: $primary;
+  color: #fff;
+  border: none;
+  box-shadow: $box-shadow-lg;
+  cursor: pointer;
+
+  @media (max-width: 991.98px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

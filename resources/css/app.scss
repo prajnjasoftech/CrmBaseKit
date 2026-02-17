@@ -1,0 +1,16 @@
+// Bootstrap and custom variables
+@import "variables";
+
+// Bootstrap core
+@import "bootstrap/scss/bootstrap";
+
+// Bootstrap Icons
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+// Admin Layout Styles
+@import "admin/layout";
+@import "admin/sidebar";
+@import "admin/header";
+@import "admin/footer";
+@import "admin/components";
+@import "admin/auth";
