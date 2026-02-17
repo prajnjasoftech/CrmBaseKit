@@ -1,11 +1,24 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AdminLayout from '../../Layouts/AdminLayout';
 
-export default function Index({ businesses, auth, flash }) {
+export default function Index({ businesses, auth, flash, filters }) {
+    const [search, setSearch] = useState(filters?.search || '');
+
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this business?')) {
             router.delete(`/businesses/${id}`);
         }
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        router.get('/businesses', { search }, { preserveState: true, preserveScroll: true });
+    };
+
+    const clearSearch = () => {
+        setSearch('');
+        router.get('/businesses', {}, { preserveState: true, preserveScroll: true });
     };
 
     const statusColors = {
@@ -35,6 +48,31 @@ export default function Index({ businesses, auth, flash }) {
                     <button type="button" className="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             )}
+
+            <div className="admin-card mb-3">
+                <div className="card-body">
+                    <form onSubmit={handleSearch} className="d-flex gap-2">
+                        <div className="input-group">
+                            <span className="input-group-text">
+                                <i className="bi bi-search"></i>
+                            </span>
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search by name, email, phone, or industry..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                            {search && (
+                                <button type="button" className="btn btn-outline-secondary" onClick={clearSearch}>
+                                    <i className="bi bi-x-lg"></i>
+                                </button>
+                            )}
+                        </div>
+                        <button type="submit" className="btn btn-primary">Search</button>
+                    </form>
+                </div>
+            </div>
 
             <div className="admin-card">
                 <div className="card-body p-0">
