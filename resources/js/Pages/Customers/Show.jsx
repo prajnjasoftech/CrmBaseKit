@@ -1,7 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
+import ContactPersonList from '../../Components/ContactPersonList';
 
-export default function Show({ customer, statuses, auth }) {
+export default function Show({ customer, statuses, entityTypes, auth }) {
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this customer?')) {
             router.delete(`/customers/${customer.id}`);
@@ -13,6 +14,8 @@ export default function Show({ customer, statuses, auth }) {
         inactive: 'status-inactive',
         churned: 'status-churned',
     };
+
+    const isBusiness = customer.entity_type === 'business';
 
     return (
         <AdminLayout user={auth?.user}>
@@ -43,20 +46,28 @@ export default function Show({ customer, statuses, auth }) {
                 <div className="col-lg-8">
                     <div className="admin-card mb-4">
                         <div className="card-header">
-                            <h2 className="card-title">Customer Information</h2>
+                            <h2 className="card-title">
+                                {isBusiness ? 'Business Information' : 'Customer Information'}
+                            </h2>
                         </div>
                         <div className="card-body">
                             <div className="row g-4">
                                 <div className="col-md-6">
-                                    <label className="form-label text-muted small mb-1">Name</label>
+                                    <label className="form-label text-muted small mb-1">
+                                        {isBusiness ? 'Business Name' : 'Name'}
+                                    </label>
                                     <div className="fw-medium">{customer.name}</div>
                                 </div>
+                                {!isBusiness && (
+                                    <div className="col-md-6">
+                                        <label className="form-label text-muted small mb-1">Company</label>
+                                        <div>{customer.company || '-'}</div>
+                                    </div>
+                                )}
                                 <div className="col-md-6">
-                                    <label className="form-label text-muted small mb-1">Company</label>
-                                    <div>{customer.company || '-'}</div>
-                                </div>
-                                <div className="col-md-6">
-                                    <label className="form-label text-muted small mb-1">Email</label>
+                                    <label className="form-label text-muted small mb-1">
+                                        {isBusiness ? 'Business Email' : 'Email'}
+                                    </label>
                                     <div>
                                         {customer.email ? (
                                             <a href={`mailto:${customer.email}`}>{customer.email}</a>
@@ -64,7 +75,9 @@ export default function Show({ customer, statuses, auth }) {
                                     </div>
                                 </div>
                                 <div className="col-md-6">
-                                    <label className="form-label text-muted small mb-1">Phone</label>
+                                    <label className="form-label text-muted small mb-1">
+                                        {isBusiness ? 'Business Phone' : 'Phone'}
+                                    </label>
                                     <div>
                                         {customer.phone ? (
                                             <a href={`tel:${customer.phone}`}>{customer.phone}</a>
@@ -88,6 +101,26 @@ export default function Show({ customer, statuses, auth }) {
                             </div>
                         </div>
                     </div>
+
+                    {isBusiness && (
+                        <div className="admin-card mb-4">
+                            <div className="card-header d-flex justify-content-between align-items-center">
+                                <h2 className="card-title mb-0">Contact Persons</h2>
+                                <Link href={`/customers/${customer.id}/contacts/create`} className="btn btn-primary btn-sm">
+                                    <i className="bi bi-plus me-1"></i>
+                                    Add Contact
+                                </Link>
+                            </div>
+                            <div className="card-body">
+                                <ContactPersonList
+                                    contacts={customer.contact_people || []}
+                                    parentType="customer"
+                                    parentId={customer.id}
+                                    canManage={true}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     <div className="admin-card mb-4">
                         <div className="card-header">
@@ -142,6 +175,17 @@ export default function Show({ customer, statuses, auth }) {
                 </div>
 
                 <div className="col-lg-4">
+                    <div className="admin-card mb-4">
+                        <div className="card-header">
+                            <h2 className="card-title">Entity Type</h2>
+                        </div>
+                        <div className="card-body">
+                            <span className={`badge ${isBusiness ? 'bg-info' : 'bg-secondary'}`}>
+                                {entityTypes[customer.entity_type] || customer.entity_type}
+                            </span>
+                        </div>
+                    </div>
+
                     <div className="admin-card mb-4">
                         <div className="card-header">
                             <h2 className="card-title">Status</h2>

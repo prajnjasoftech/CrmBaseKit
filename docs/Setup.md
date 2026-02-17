@@ -125,7 +125,10 @@ Visit `http://localhost:8000` in your browser.
 | `/users` | User management | Yes + Permission |
 | `/leads` | Lead management | Yes + Permission |
 | `/leads/{id}/convert` | Convert lead to customer | Yes + Permission |
+| `/leads/{id}/contacts/create` | Add contact to business lead | Yes + Permission |
 | `/customers` | Customer management | Yes + Permission |
+| `/customers/{id}/contacts/create` | Add contact to business customer | Yes + Permission |
+| `/contacts/{id}/edit` | Edit contact person | Yes + Permission |
 
 ## Development Workflow
 
@@ -197,6 +200,7 @@ npm run build
 | create customers | x | x | x | x | |
 | edit customers | x | x | x | x | |
 | delete customers | x | x | | | |
+| manage contact persons | x | x | x | x | |
 | view news | x | x | x | x | x |
 | create news | x | x | x | | |
 | edit news | x | x | x | | |

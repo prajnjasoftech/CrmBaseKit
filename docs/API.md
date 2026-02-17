@@ -437,6 +437,12 @@ Soft-deletes a business.
 
 All routes require authentication and appropriate permissions.
 
+### Entity Types
+
+Leads support two entity types:
+- `individual` - Personal contacts with first_name, last_name, email, phone
+- `business` - Company entities with company_name and multiple contact persons
+
 ### List Leads
 
 **GET** `/leads`
@@ -452,14 +458,17 @@ Returns paginated list of leads.
         "data": [
             {
                 "id": 1,
-                "name": "John Prospect",
+                "entity_type": "individual",
+                "first_name": "John",
+                "last_name": "Prospect",
                 "email": "john@prospect.com",
                 "phone": "+1-555-0100",
-                "company": "Prospect Inc",
+                "company_name": null,
                 "source": "website",
                 "status": "qualified",
                 "assignee": {"id": 1, "name": "Sales Rep"},
                 "business": {"id": 1, "name": "Acme Corp"},
+                "contact_persons": [],
                 "created_at": "2024-01-15T10:30:00Z"
             }
         ],
@@ -481,7 +490,12 @@ Returns paginated list of leads.
         "advertisement": "Advertisement",
         "cold_call": "Cold Call",
         "social_media": "Social Media",
+        "trade_show": "Trade Show",
         "other": "Other"
+    },
+    "entityTypes": {
+        "individual": "Individual",
+        "business": "Business"
     }
 }
 ```
@@ -516,13 +530,14 @@ Creates a new lead.
 
 **Permission Required:** `create leads`
 
-**Request Body:**
+**Request Body (Individual):**
 ```json
 {
-    "name": "John Prospect",
+    "entity_type": "individual",
+    "first_name": "John",
+    "last_name": "Prospect",
     "email": "john@prospect.com",
     "phone": "+1-555-0100",
-    "company": "Prospect Inc",
     "source": "website",
     "status": "new",
     "notes": "Interested in enterprise plan",
@@ -531,7 +546,26 @@ Creates a new lead.
 }
 ```
 
-**Required Fields:** `name`, `source`
+**Request Body (Business):**
+```json
+{
+    "entity_type": "business",
+    "company_name": "Prospect Inc",
+    "source": "website",
+    "status": "new",
+    "notes": "Enterprise inquiry",
+    "assigned_to": 1,
+    "business_id": 1
+}
+```
+
+**Required Fields:**
+- `entity_type` (individual or business)
+- `source`
+- For individual: `first_name`, `last_name`
+- For business: `company_name`
+
+**Immutable Fields:** `email` and `phone` cannot be changed once set (can only be set if null)
 
 ---
 
@@ -543,26 +577,65 @@ Returns lead details with relationships.
 
 **Permission Required:** `view leads`
 
-**Response Props:**
+**Response Props (Individual):**
 ```json
 {
     "lead": {
         "id": 1,
-        "name": "John Prospect",
+        "entity_type": "individual",
+        "first_name": "John",
+        "last_name": "Prospect",
         "email": "john@prospect.com",
         "phone": "+1-555-0100",
-        "company": "Prospect Inc",
+        "company_name": null,
         "source": "website",
         "status": "qualified",
         "notes": "Interested in enterprise plan",
         "assignee": {"id": 1, "name": "Sales Rep"},
         "business": {"id": 1, "name": "Acme Corp"},
+        "contact_persons": [],
         "customer": null,
         "created_at": "2024-01-15T10:30:00Z",
         "updated_at": "2024-01-15T10:30:00Z"
     },
     "statuses": {...},
-    "sources": {...}
+    "sources": {...},
+    "entityTypes": {...}
+}
+```
+
+**Response Props (Business with Contact Persons):**
+```json
+{
+    "lead": {
+        "id": 2,
+        "entity_type": "business",
+        "first_name": null,
+        "last_name": null,
+        "email": null,
+        "phone": null,
+        "company_name": "Prospect Inc",
+        "source": "referral",
+        "status": "proposal",
+        "notes": "Enterprise inquiry",
+        "contact_persons": [
+            {
+                "id": 1,
+                "name": "Jane Smith",
+                "email": "jane@prospect.com",
+                "phone": "+1-555-0101",
+                "position": "CEO",
+                "is_primary": true,
+                "notes": "Decision maker"
+            }
+        ],
+        "customer": null,
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z"
+    },
+    "statuses": {...},
+    "sources": {...},
+    "entityTypes": {...}
 }
 ```
 
@@ -587,6 +660,8 @@ Updates lead information.
 **Permission Required:** `edit leads`
 
 **Request Body:** Same as Store Lead with `status` required.
+
+**Important:** `email` and `phone` fields are immutable once set. Attempts to change them will be rejected with a 422 error.
 
 ---
 
@@ -637,13 +712,14 @@ Converts a won lead to a customer.
 
 **Restrictions:** Lead must have status "won" and not already converted.
 
-**Request Body:**
+**Request Body (Individual):**
 ```json
 {
-    "name": "John Prospect",
+    "entity_type": "individual",
+    "first_name": "John",
+    "last_name": "Prospect",
     "email": "john@prospect.com",
     "phone": "+1-555-0100",
-    "company": "Prospect Inc",
     "address": "123 Customer St",
     "city": "New York",
     "state": "NY",
@@ -656,13 +732,39 @@ Converts a won lead to a customer.
 }
 ```
 
-**Result:** Creates a new customer with `converted_from_lead_id` set to the lead's ID.
+**Request Body (Business):**
+```json
+{
+    "entity_type": "business",
+    "company_name": "Prospect Inc",
+    "address": "123 Customer St",
+    "city": "New York",
+    "state": "NY",
+    "postal_code": "10001",
+    "country": "US",
+    "status": "active",
+    "notes": "Enterprise customer",
+    "assigned_to": 1,
+    "business_id": 1
+}
+```
+
+**Result:**
+- Creates a new customer with `converted_from_lead_id` set to the lead's ID
+- For business leads: All contact persons are copied to the new customer
+- The lead's status remains "won" but is marked as converted
 
 ---
 
 ## Customer Management Routes
 
 All routes require authentication and appropriate permissions.
+
+### Entity Types
+
+Customers support two entity types:
+- `individual` - Personal customers with first_name, last_name, email, phone
+- `business` - Company customers with company_name and multiple contact persons
 
 ### List Customers
 
@@ -679,14 +781,17 @@ Returns paginated list of customers.
         "data": [
             {
                 "id": 1,
-                "name": "Jane Customer",
+                "entity_type": "individual",
+                "first_name": "Jane",
+                "last_name": "Customer",
                 "email": "jane@customer.com",
                 "phone": "+1-555-0200",
-                "company": "Customer Corp",
+                "company_name": null,
                 "status": "active",
                 "converted_from_lead_id": 1,
                 "assignee": {"id": 1, "name": "Account Manager"},
                 "business": {"id": 1, "name": "Acme Corp"},
+                "contact_persons": [],
                 "created_at": "2024-01-15T10:30:00Z"
             }
         ],
@@ -697,6 +802,10 @@ Returns paginated list of customers.
         "active": "Active",
         "inactive": "Inactive",
         "churned": "Churned"
+    },
+    "entityTypes": {
+        "individual": "Individual",
+        "business": "Business"
     }
 }
 ```
@@ -731,13 +840,14 @@ Creates a new customer directly (not from lead conversion).
 
 **Permission Required:** `create customers`
 
-**Request Body:**
+**Request Body (Individual):**
 ```json
 {
-    "name": "Jane Customer",
+    "entity_type": "individual",
+    "first_name": "Jane",
+    "last_name": "Customer",
     "email": "jane@customer.com",
     "phone": "+1-555-0200",
-    "company": "Customer Corp",
     "address": "456 Customer Ave",
     "city": "Los Angeles",
     "state": "CA",
@@ -750,7 +860,29 @@ Creates a new customer directly (not from lead conversion).
 }
 ```
 
-**Required Fields:** `name`
+**Request Body (Business):**
+```json
+{
+    "entity_type": "business",
+    "company_name": "Customer Corp",
+    "address": "456 Customer Ave",
+    "city": "Los Angeles",
+    "state": "CA",
+    "postal_code": "90001",
+    "country": "US",
+    "status": "active",
+    "notes": "Enterprise customer",
+    "assigned_to": 1,
+    "business_id": 1
+}
+```
+
+**Required Fields:**
+- `entity_type` (individual or business)
+- For individual: `first_name`, `last_name`
+- For business: `company_name`
+
+**Immutable Fields:** `email` and `phone` cannot be changed once set (can only be set if null)
 
 ---
 
@@ -762,15 +894,17 @@ Returns customer details with relationships.
 
 **Permission Required:** `view customers`
 
-**Response Props:**
+**Response Props (Individual):**
 ```json
 {
     "customer": {
         "id": 1,
-        "name": "Jane Customer",
+        "entity_type": "individual",
+        "first_name": "Jane",
+        "last_name": "Customer",
         "email": "jane@customer.com",
         "phone": "+1-555-0200",
-        "company": "Customer Corp",
+        "company_name": null,
         "address": "456 Customer Ave",
         "city": "Los Angeles",
         "state": "CA",
@@ -779,13 +913,46 @@ Returns customer details with relationships.
         "status": "active",
         "notes": "VIP customer",
         "converted_from_lead_id": 1,
-        "lead": {"id": 1, "name": "Jane Prospect", "source": "referral"},
+        "lead": {"id": 1, "first_name": "Jane", "last_name": "Prospect", "source": "referral"},
         "assignee": {"id": 1, "name": "Account Manager"},
         "business": {"id": 1, "name": "Acme Corp"},
+        "contact_persons": [],
         "created_at": "2024-01-15T10:30:00Z",
         "updated_at": "2024-01-15T10:30:00Z"
     },
-    "statuses": {...}
+    "statuses": {...},
+    "entityTypes": {...}
+}
+```
+
+**Response Props (Business with Contact Persons):**
+```json
+{
+    "customer": {
+        "id": 2,
+        "entity_type": "business",
+        "first_name": null,
+        "last_name": null,
+        "email": null,
+        "phone": null,
+        "company_name": "Customer Corp",
+        "status": "active",
+        "contact_persons": [
+            {
+                "id": 1,
+                "name": "John Smith",
+                "email": "john@customercorp.com",
+                "phone": "+1-555-0201",
+                "position": "Account Manager",
+                "is_primary": true,
+                "notes": "Main point of contact"
+            }
+        ],
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z"
+    },
+    "statuses": {...},
+    "entityTypes": {...}
 }
 ```
 
@@ -811,15 +978,137 @@ Updates customer information.
 
 **Request Body:** Same as Store Customer with `status` required.
 
+**Important:** `email` and `phone` fields are immutable once set. Attempts to change them will be rejected with a 422 error.
+
 ---
 
 ### Delete Customer
 
 **DELETE** `/customers/{id}`
 
-Soft-deletes a customer.
+Soft-deletes a customer. All associated contact persons are also deleted (cascade).
 
 **Permission Required:** `delete customers`
+
+---
+
+## Contact Person Management Routes
+
+Contact persons can be associated with business-type leads and customers. Individual entities cannot have contact persons.
+
+### Create Contact Person Form (Lead)
+
+**GET** `/leads/{lead}/contacts/create`
+
+Returns the create contact person form for a business lead.
+
+**Permission Required:** `manage contact persons`
+
+**Restrictions:** Lead must be entity_type "business"
+
+---
+
+### Store Contact Person (Lead)
+
+**POST** `/leads/{lead}/contacts`
+
+Creates a new contact person for a business lead.
+
+**Permission Required:** `manage contact persons`
+
+**Request Body:**
+```json
+{
+    "name": "Jane Smith",
+    "email": "jane@company.com",
+    "phone": "+1-555-0100",
+    "position": "CEO",
+    "is_primary": true,
+    "notes": "Decision maker"
+}
+```
+
+**Required Fields:** `name`
+
+**Note:** If `is_primary` is true, any existing primary contact will be demoted.
+
+---
+
+### Create Contact Person Form (Customer)
+
+**GET** `/customers/{customer}/contacts/create`
+
+Returns the create contact person form for a business customer.
+
+**Permission Required:** `manage contact persons`
+
+**Restrictions:** Customer must be entity_type "business"
+
+---
+
+### Store Contact Person (Customer)
+
+**POST** `/customers/{customer}/contacts`
+
+Creates a new contact person for a business customer.
+
+**Permission Required:** `manage contact persons`
+
+**Request Body:** Same as Store Contact Person (Lead)
+
+---
+
+### Edit Contact Person
+
+**GET** `/contacts/{contact}/edit`
+
+Returns the edit form for a contact person.
+
+**Permission Required:** `manage contact persons`
+
+---
+
+### Update Contact Person
+
+**PUT** `/contacts/{contact}`
+
+Updates contact person information.
+
+**Permission Required:** `manage contact persons`
+
+**Request Body:**
+```json
+{
+    "name": "Jane Smith-Jones",
+    "email": "jane.jones@company.com",
+    "phone": "+1-555-0101",
+    "position": "COO",
+    "is_primary": false,
+    "notes": "Promoted to COO"
+}
+```
+
+---
+
+### Delete Contact Person
+
+**DELETE** `/contacts/{contact}`
+
+Deletes a contact person.
+
+**Permission Required:** `manage contact persons`
+
+---
+
+### Set Primary Contact
+
+**POST** `/contacts/{contact}/set-primary`
+
+Sets the contact person as the primary contact for their parent entity.
+
+**Permission Required:** `manage contact persons`
+
+**Result:** The specified contact becomes primary; any existing primary contact is demoted.
 
 ---
 

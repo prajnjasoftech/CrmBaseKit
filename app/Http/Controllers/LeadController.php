@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\EntityType;
 use App\Http\Requests\ConvertLeadRequest;
 use App\Http\Requests\StoreLeadRequest;
 use App\Http\Requests\UpdateLeadRequest;
@@ -40,6 +41,7 @@ class LeadController extends Controller
         return Inertia::render('Leads/Create', [
             'statuses' => Lead::getStatuses(),
             'sources' => Lead::getSources(),
+            'entityTypes' => EntityType::toArray(),
             'users' => $this->getAssignableUsers(),
             'businesses' => $this->getBusinesses(),
         ]);
@@ -59,12 +61,13 @@ class LeadController extends Controller
     {
         $this->authorize('view', $lead);
 
-        $lead->load(['assignee:id,name', 'business:id,name', 'customer']);
+        $lead->load(['assignee:id,name', 'business:id,name', 'customer', 'contactPeople']);
 
         return Inertia::render('Leads/Show', [
             'lead' => $lead,
             'statuses' => Lead::getStatuses(),
             'sources' => Lead::getSources(),
+            'entityTypes' => EntityType::toArray(),
         ]);
     }
 
@@ -72,10 +75,13 @@ class LeadController extends Controller
     {
         $this->authorize('update', $lead);
 
+        $lead->load('contactPeople');
+
         return Inertia::render('Leads/Edit', [
             'lead' => $lead,
             'statuses' => Lead::getStatuses(),
             'sources' => Lead::getSources(),
+            'entityTypes' => EntityType::toArray(),
             'users' => $this->getAssignableUsers(),
             'businesses' => $this->getBusinesses(),
         ]);
@@ -105,9 +111,12 @@ class LeadController extends Controller
     {
         $this->authorize('convert', $lead);
 
+        $lead->load('contactPeople');
+
         return Inertia::render('Leads/Convert', [
             'lead' => $lead,
             'customerStatuses' => Customer::getStatuses(),
+            'entityTypes' => EntityType::toArray(),
             'users' => $this->getAssignableUsers(),
             'businesses' => $this->getBusinesses(),
             'countries' => $this->getCountries(),
@@ -120,8 +129,20 @@ class LeadController extends Controller
 
         $data = $request->validated();
         $data['converted_from_lead_id'] = $lead->id;
+        $data['entity_type'] = $lead->entity_type;
 
-        Customer::create($data);
+        $customer = Customer::create($data);
+
+        // Copy contact people from lead to customer
+        foreach ($lead->contactPeople as $contact) {
+            $customer->contactPeople()->create([
+                'name' => $contact->name,
+                'email' => $contact->email,
+                'mobile' => $contact->mobile,
+                'designation' => $contact->designation,
+                'is_primary' => $contact->is_primary,
+            ]);
+        }
 
         return redirect()->route('customers.index')
             ->with('success', 'Lead converted to customer successfully.');

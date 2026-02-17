@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\EntityType;
 use App\Models\Customer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -19,6 +20,7 @@ class CustomerFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'entity_type' => EntityType::Individual,
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
             'company' => fake()->optional(0.7)->company(),
@@ -30,6 +32,24 @@ class CustomerFactory extends Factory
             'status' => Customer::STATUS_ACTIVE,
             'notes' => fake()->optional(0.3)->paragraph(),
         ];
+    }
+
+    public function individual(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'entity_type' => EntityType::Individual,
+            'name' => fake()->name(),
+            'company' => fake()->optional(0.7)->company(),
+        ]);
+    }
+
+    public function business(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'entity_type' => EntityType::Business,
+            'name' => fake()->company(),
+            'company' => null,
+        ]);
     }
 
     public function active(): static

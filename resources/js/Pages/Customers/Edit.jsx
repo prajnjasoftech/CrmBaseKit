@@ -1,11 +1,10 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
+import ContactPersonList from '../../Components/ContactPersonList';
 
-export default function Edit({ customer, statuses, users, businesses, countries, auth }) {
+export default function Edit({ customer, statuses, entityTypes, users, businesses, countries, auth }) {
     const { data, setData, put, processing, errors } = useForm({
         name: customer.name || '',
-        email: customer.email || '',
-        phone: customer.phone || '',
         company: customer.company || '',
         address: customer.address || '',
         city: customer.city || '',
@@ -23,6 +22,8 @@ export default function Edit({ customer, statuses, users, businesses, countries,
         put(`/customers/${customer.id}`);
     };
 
+    const isBusiness = customer.entity_type === 'business';
+
     return (
         <AdminLayout user={auth?.user}>
             <Head title={`Edit Customer - ${customer.name}`} />
@@ -37,12 +38,16 @@ export default function Edit({ customer, statuses, users, businesses, countries,
                     <form onSubmit={handleSubmit}>
                         <div className="admin-card mb-4">
                             <div className="card-header">
-                                <h2 className="card-title">Customer Information</h2>
+                                <h2 className="card-title">
+                                    {isBusiness ? 'Business Information' : 'Customer Information'}
+                                </h2>
                             </div>
                             <div className="card-body">
                                 <div className="row g-3">
                                     <div className="col-md-6">
-                                        <label className="form-label">Name *</label>
+                                        <label className="form-label">
+                                            {isBusiness ? 'Business Name *' : 'Name *'}
+                                        </label>
                                         <input
                                             type="text"
                                             className={`form-control ${errors.name ? 'is-invalid' : ''}`}
@@ -52,37 +57,45 @@ export default function Edit({ customer, statuses, users, businesses, countries,
                                         {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                                     </div>
 
-                                    <div className="col-md-6">
-                                        <label className="form-label">Company</label>
-                                        <input
-                                            type="text"
-                                            className={`form-control ${errors.company ? 'is-invalid' : ''}`}
-                                            value={data.company}
-                                            onChange={(e) => setData('company', e.target.value)}
-                                        />
-                                        {errors.company && <div className="invalid-feedback">{errors.company}</div>}
-                                    </div>
+                                    {!isBusiness && (
+                                        <div className="col-md-6">
+                                            <label className="form-label">Company</label>
+                                            <input
+                                                type="text"
+                                                className={`form-control ${errors.company ? 'is-invalid' : ''}`}
+                                                value={data.company}
+                                                onChange={(e) => setData('company', e.target.value)}
+                                            />
+                                            {errors.company && <div className="invalid-feedback">{errors.company}</div>}
+                                        </div>
+                                    )}
 
                                     <div className="col-md-6">
-                                        <label className="form-label">Email</label>
+                                        <label className="form-label">
+                                            {isBusiness ? 'Business Email' : 'Email'}
+                                            <span className="badge bg-secondary ms-2">Cannot be changed</span>
+                                        </label>
                                         <input
                                             type="email"
-                                            className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-                                            value={data.email}
-                                            onChange={(e) => setData('email', e.target.value)}
+                                            className="form-control"
+                                            value={customer.email || ''}
+                                            disabled
                                         />
-                                        {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+                                        <small className="text-muted">Email cannot be modified after creation.</small>
                                     </div>
 
                                     <div className="col-md-6">
-                                        <label className="form-label">Phone</label>
+                                        <label className="form-label">
+                                            {isBusiness ? 'Business Phone' : 'Phone'}
+                                            <span className="badge bg-secondary ms-2">Cannot be changed</span>
+                                        </label>
                                         <input
                                             type="tel"
-                                            className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
-                                            value={data.phone}
-                                            onChange={(e) => setData('phone', e.target.value)}
+                                            className="form-control"
+                                            value={customer.phone || ''}
+                                            disabled
                                         />
-                                        {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
+                                        <small className="text-muted">Phone cannot be modified after creation.</small>
                                     </div>
 
                                     <div className="col-md-6">
@@ -117,6 +130,26 @@ export default function Edit({ customer, statuses, users, businesses, countries,
                                 </div>
                             </div>
                         </div>
+
+                        {isBusiness && (
+                            <div className="admin-card mb-4">
+                                <div className="card-header d-flex justify-content-between align-items-center">
+                                    <h2 className="card-title mb-0">Contact Persons</h2>
+                                    <Link href={`/customers/${customer.id}/contacts/create`} className="btn btn-primary btn-sm">
+                                        <i className="bi bi-plus me-1"></i>
+                                        Add Contact
+                                    </Link>
+                                </div>
+                                <div className="card-body">
+                                    <ContactPersonList
+                                        contacts={customer.contact_people || []}
+                                        parentType="customer"
+                                        parentId={customer.id}
+                                        canManage={true}
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                         <div className="admin-card mb-4">
                             <div className="card-header">
@@ -213,6 +246,20 @@ export default function Edit({ customer, statuses, users, businesses, countries,
                 </div>
 
                 <div className="col-lg-4">
+                    <div className="admin-card mb-4">
+                        <div className="card-header">
+                            <h2 className="card-title">Entity Type</h2>
+                        </div>
+                        <div className="card-body">
+                            <span className={`badge ${isBusiness ? 'bg-info' : 'bg-secondary'}`}>
+                                {entityTypes[customer.entity_type] || customer.entity_type}
+                            </span>
+                            <small className="text-muted d-block mt-2">
+                                Entity type cannot be changed after creation.
+                            </small>
+                        </div>
+                    </div>
+
                     <div className="admin-card">
                         <div className="card-header">
                             <h2 className="card-title">Status</h2>

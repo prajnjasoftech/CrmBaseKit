@@ -483,8 +483,9 @@ public function showConvert(Lead $lead): Response
     $this->authorize('convert', $lead);
 
     return Inertia::render('Leads/Convert', [
-        'lead' => $lead,
-        'customerStatuses' => Customer::getStatuses(),
+        'lead' => $lead->load('contactPersons'),
+        'customerStatuses' => CustomerStatus::options(),
+        'entityTypes' => EntityType::options(),
     ]);
 }
 
@@ -494,8 +495,23 @@ public function convert(ConvertLeadRequest $request, Lead $lead): RedirectRespon
 
     $data = $request->validated();
     $data['converted_from_lead_id'] = $lead->id;
+    $data['entity_type'] = $lead->entity_type;
 
-    Customer::create($data);
+    $customer = Customer::create($data);
+
+    // Copy contact persons for business entities
+    if ($lead->entity_type === EntityType::BUSINESS) {
+        foreach ($lead->contactPersons as $contact) {
+            $customer->contactPersons()->create([
+                'name' => $contact->name,
+                'email' => $contact->email,
+                'phone' => $contact->phone,
+                'position' => $contact->position,
+                'is_primary' => $contact->is_primary,
+                'notes' => $contact->notes,
+            ]);
+        }
+    }
 
     return redirect()->route('customers.index')
         ->with('success', 'Lead converted to customer successfully.');
@@ -516,12 +532,12 @@ public function convert(User $user, Lead $lead): bool
 ```php
 public function canBeConverted(): bool
 {
-    return $this->status === self::STATUS_WON && ! $this->isConverted();
+    return $this->status === LeadStatus::WON && ! $this->isConverted();
 }
 
 public function isConverted(): bool
 {
-    return $this->status === self::STATUS_WON && $this->customer()->exists();
+    return $this->status === LeadStatus::WON && $this->customer()->exists();
 }
 ```
 
@@ -530,4 +546,176 @@ public function isConverted(): bool
 ```php
 Route::get('leads/{lead}/convert', [LeadController::class, 'showConvert'])->name('leads.convert');
 Route::post('leads/{lead}/convert', [LeadController::class, 'convert'])->name('leads.convert.store');
+```
+
+## Entity Type Pattern
+
+Leads and Customers support two entity types: Individual and Business.
+
+### Enum Definition
+
+```php
+// app/Enums/EntityType.php
+namespace App\Enums;
+
+enum EntityType: string
+{
+    case INDIVIDUAL = 'individual';
+    case BUSINESS = 'business';
+
+    public static function options(): array
+    {
+        return [
+            self::INDIVIDUAL->value => 'Individual',
+            self::BUSINESS->value => 'Business',
+        ];
+    }
+}
+```
+
+### Model Usage
+
+```php
+// In Lead or Customer model
+protected $casts = [
+    'entity_type' => EntityType::class,
+];
+
+public function isIndividual(): bool
+{
+    return $this->entity_type === EntityType::INDIVIDUAL;
+}
+
+public function isBusiness(): bool
+{
+    return $this->entity_type === EntityType::BUSINESS;
+}
+```
+
+### Conditional Validation
+
+```php
+// In StoreLeadRequest
+public function rules(): array
+{
+    $rules = [
+        'entity_type' => ['required', new Enum(EntityType::class)],
+        'source' => ['required', new Enum(LeadSource::class)],
+    ];
+
+    if ($this->input('entity_type') === 'individual') {
+        $rules['first_name'] = ['required', 'string', 'max:191'];
+        $rules['last_name'] = ['required', 'string', 'max:191'];
+    } else {
+        $rules['company_name'] = ['required', 'string', 'max:191'];
+    }
+
+    return $rules;
+}
+```
+
+## Contact Persons Pattern
+
+Business entities can have multiple contact persons.
+
+### Service Layer
+
+```php
+// app/Services/ContactPersonService.php
+class ContactPersonService
+{
+    public function addContact(Lead|Customer $entity, array $data): ContactPerson
+    {
+        if ($entity->entity_type !== EntityType::BUSINESS) {
+            throw new InvalidArgumentException('Contact persons can only be added to business entities');
+        }
+
+        if ($data['is_primary'] ?? false) {
+            $entity->contactPersons()->update(['is_primary' => false]);
+        }
+
+        return $entity->contactPersons()->create($data);
+    }
+
+    public function setPrimary(ContactPerson $contact): void
+    {
+        $contact->contactable->contactPersons()->update(['is_primary' => false]);
+        $contact->update(['is_primary' => true]);
+    }
+}
+```
+
+### Polymorphic Relationship
+
+```php
+// In ContactPerson model
+public function contactable(): MorphTo
+{
+    return $this->morphTo();
+}
+
+// In Lead/Customer model
+public function contactPersons(): MorphMany
+{
+    return $this->morphMany(ContactPerson::class, 'contactable');
+}
+```
+
+## Immutable Fields Pattern
+
+Certain fields should not be changed after creation (for audit trails).
+
+### Exception Class
+
+```php
+// app/Exceptions/ImmutableFieldException.php
+class ImmutableFieldException extends Exception
+{
+    public static function cannotModify(string $field): self
+    {
+        return new self("The {$field} field cannot be modified once set.");
+    }
+}
+```
+
+### Model Observer or Updating Event
+
+```php
+// In Lead/Customer model boot method
+protected static function booted(): void
+{
+    static::updating(function (self $model) {
+        $immutableFields = ['email', 'phone'];
+
+        foreach ($immutableFields as $field) {
+            $original = $model->getOriginal($field);
+            $new = $model->getAttribute($field);
+
+            if ($original !== null && $original !== $new) {
+                throw ImmutableFieldException::cannotModify($field);
+            }
+        }
+    });
+}
+```
+
+### Request Validation
+
+```php
+// In UpdateLeadRequest
+public function rules(): array
+{
+    $rules = [...];
+
+    // Remove immutable fields if they haven't changed
+    $lead = $this->route('lead');
+    if ($lead->email !== null) {
+        unset($rules['email']);
+    }
+    if ($lead->phone !== null) {
+        unset($rules['phone']);
+    }
+
+    return $rules;
+}
 ```

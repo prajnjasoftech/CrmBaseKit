@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\EntityType;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Business;
@@ -36,6 +37,7 @@ class CustomerController extends Controller
 
         return Inertia::render('Customers/Create', [
             'statuses' => Customer::getStatuses(),
+            'entityTypes' => EntityType::toArray(),
             'users' => $this->getAssignableUsers(),
             'businesses' => $this->getBusinesses(),
             'countries' => $this->getCountries(),
@@ -56,11 +58,12 @@ class CustomerController extends Controller
     {
         $this->authorize('view', $customer);
 
-        $customer->load(['assignee:id,name', 'business:id,name', 'lead']);
+        $customer->load(['assignee:id,name', 'business:id,name', 'lead', 'contactPeople']);
 
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
             'statuses' => Customer::getStatuses(),
+            'entityTypes' => EntityType::toArray(),
         ]);
     }
 
@@ -68,9 +71,12 @@ class CustomerController extends Controller
     {
         $this->authorize('update', $customer);
 
+        $customer->load('contactPeople');
+
         return Inertia::render('Customers/Edit', [
             'customer' => $customer,
             'statuses' => Customer::getStatuses(),
+            'entityTypes' => EntityType::toArray(),
             'users' => $this->getAssignableUsers(),
             'businesses' => $this->getBusinesses(),
             'countries' => $this->getCountries(),
