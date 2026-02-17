@@ -447,9 +447,15 @@ Leads support two entity types:
 
 **GET** `/leads`
 
-Returns paginated list of leads.
+Returns paginated list of leads with optional search filtering.
 
 **Permission Required:** `view leads`
+
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| search | string | Search by first_name, last_name, company_name, email, or phone |
+| page | integer | Page number for pagination |
 
 **Response Props:**
 ```json
@@ -770,9 +776,15 @@ Customers support two entity types:
 
 **GET** `/customers`
 
-Returns paginated list of customers.
+Returns paginated list of customers with optional search filtering.
 
 **Permission Required:** `view customers`
+
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| search | string | Search by first_name, last_name, company_name, email, or phone |
+| page | integer | Page number for pagination |
 
 **Response Props:**
 ```json
