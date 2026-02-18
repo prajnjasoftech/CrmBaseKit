@@ -52,6 +52,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Contact Person Management
             'manage contact persons',
 
+            // Follow Up Management
+            'manage follow ups',
+
             // News Board
             'view news',
             'create news',
@@ -82,6 +85,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view leads', 'create leads', 'edit leads', 'delete leads', 'convert leads',
             'view customers', 'create customers', 'edit customers', 'delete customers',
             'manage contact persons',
+            'manage follow ups',
             'view news', 'create news', 'edit news', 'delete news', 'publish news',
             'view settings',
         ]);
@@ -94,6 +98,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view leads', 'create leads', 'edit leads', 'convert leads',
             'view customers', 'create customers', 'edit customers',
             'manage contact persons',
+            'manage follow ups',
             'view news', 'create news', 'edit news',
         ]);
 
@@ -103,6 +108,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view leads', 'create leads', 'edit leads', 'convert leads',
             'view customers', 'create customers', 'edit customers',
             'manage contact persons',
+            'manage follow ups',
             'view news',
         ]);
 

@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
 import ContactPersonList from '../../Components/ContactPersonList';
+import FollowUpList from '../../Components/FollowUpList';
 
 export default function Show({ lead, statuses, sources, entityTypes, auth }) {
     const handleDelete = () => {
@@ -140,6 +141,24 @@ export default function Show({ lead, statuses, sources, entityTypes, auth }) {
                             </div>
                         </div>
                     )}
+
+                    <div className="admin-card mb-4">
+                        <div className="card-header d-flex justify-content-between align-items-center">
+                            <h2 className="card-title mb-0">Follow-ups</h2>
+                            <Link href={`/leads/${lead.id}/follow-ups/create`} className="btn btn-primary btn-sm">
+                                <i className="bi bi-plus me-1"></i>
+                                Schedule Follow-up
+                            </Link>
+                        </div>
+                        <div className="card-body">
+                            <FollowUpList
+                                followUps={lead.follow_ups || []}
+                                parentType="lead"
+                                parentId={lead.id}
+                                canManage={true}
+                            />
+                        </div>
+                    </div>
 
                     {lead.notes && (
                         <div className="admin-card mb-4">

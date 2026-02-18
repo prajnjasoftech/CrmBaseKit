@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property EntityType $entity_type
@@ -72,7 +73,10 @@ class Customer extends Model
         });
 
         static::deleting(function (Customer $customer): void {
-            $customer->contactPeople()->delete();
+            DB::transaction(function () use ($customer): void {
+                $customer->contactPeople()->delete();
+                $customer->followUps()->delete();
+            });
         });
     }
 
@@ -118,6 +122,14 @@ class Customer extends Model
     public function contactPeople(): MorphMany
     {
         return $this->morphMany(ContactPerson::class, 'contactable');
+    }
+
+    /**
+     * @return MorphMany<FollowUp, $this>
+     */
+    public function followUps(): MorphMany
+    {
+        return $this->morphMany(FollowUp::class, 'followable');
     }
 
     public function getFullAddressAttribute(): string
