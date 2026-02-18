@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\EntityType;
-use App\Exceptions\ImmutableFieldException;
 use App\Models\ContactPerson;
 use App\Models\Customer;
 use App\Models\Lead;
@@ -280,23 +279,25 @@ describe('Customer Edit', function (): void {
     });
 });
 
-describe('Customer Immutability', function (): void {
-    it('prevents updating email after creation', function (): void {
+describe('Customer Contact Editing', function (): void {
+    it('allows updating email after creation', function (): void {
         $customer = Customer::factory()->create([
             'email' => 'original@example.com',
         ]);
 
-        $this->expectException(ImmutableFieldException::class);
         $customer->update(['email' => 'changed@example.com']);
+
+        expect($customer->fresh()->email)->toBe('changed@example.com');
     });
 
-    it('prevents updating phone after creation', function (): void {
+    it('allows updating phone after creation', function (): void {
         $customer = Customer::factory()->create([
             'phone' => '1234567890',
         ]);
 
-        $this->expectException(ImmutableFieldException::class);
         $customer->update(['phone' => '0987654321']);
+
+        expect($customer->fresh()->phone)->toBe('0987654321');
     });
 
     it('allows setting email and phone on creation', function (): void {

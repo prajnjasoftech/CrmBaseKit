@@ -661,9 +661,9 @@ public function contactPersons(): MorphMany
 }
 ```
 
-## Immutable Fields Pattern
+## Immutable Fields Pattern (Optional)
 
-Certain fields should not be changed after creation (for audit trails).
+If you need to prevent certain fields from being changed after creation (for audit trails), you can implement this pattern.
 
 ### Exception Class
 

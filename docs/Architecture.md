@@ -51,7 +51,6 @@ CRM Base Kit is a production-grade starter kit built with Laravel 12, React 19, 
 - Business association
 - **Contact Persons**: Multiple contacts per business lead with primary designation
 - Lead-to-Customer conversion workflow with contact person transfer
-- **Immutable Fields**: Email and phone cannot be changed after creation
 - Soft deletes for data retention
 
 ### 5. Customers Module
@@ -63,7 +62,6 @@ CRM Base Kit is a production-grade starter kit built with Laravel 12, React 19, 
 - User assignment for account management
 - Business association
 - **Contact Persons**: Multiple contacts per business customer with primary designation
-- **Immutable Fields**: Email and phone cannot be changed after creation
 - Soft deletes for data retention
 
 ### 6. Contact Persons Module
@@ -105,8 +103,6 @@ CRMBaseKit/
 │   │   ├── LeadStatus.php         # Lead status enum
 │   │   ├── LeadSource.php         # Lead source enum
 │   │   └── CustomerStatus.php     # Customer status enum
-│   ├── Exceptions/
-│   │   └── ImmutableFieldException.php  # Thrown when modifying immutable fields
 │   ├── Http/
 │   │   ├── Controllers/
 │   │   │   ├── Auth/              # Authentication controllers
@@ -353,7 +349,7 @@ Both `leads` and `customers` tables include:
 - `entity_type` - ENUM('individual', 'business')
 - `first_name`, `last_name` - For individual entities
 - `company_name` - For business entities
-- `email`, `phone` - Contact info (immutable once set)
+- `email`, `phone` - Contact info
 
 ### Contact Persons Table
 | Column | Type | Description |

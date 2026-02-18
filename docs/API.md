@@ -571,8 +571,6 @@ Creates a new lead.
 - For individual: `first_name`, `last_name`
 - For business: `company_name`
 
-**Immutable Fields:** `email` and `phone` cannot be changed once set (can only be set if null)
-
 ---
 
 ### Show Lead
@@ -676,8 +674,6 @@ Updates lead information.
 **Permission Required:** `edit leads`
 
 **Request Body:** Same as Store Lead with `status` required.
-
-**Important:** `email` and `phone` fields are immutable once set. Attempts to change them will be rejected with a 422 error.
 
 ---
 
@@ -904,8 +900,6 @@ Creates a new customer directly (not from lead conversion).
 - For individual: `first_name`, `last_name`
 - For business: `company_name`
 
-**Immutable Fields:** `email` and `phone` cannot be changed once set (can only be set if null)
-
 ---
 
 ### Show Customer
@@ -1009,8 +1003,6 @@ Updates customer information.
 **Permission Required:** `edit customers`
 
 **Request Body:** Same as Store Customer with `status` required.
-
-**Important:** `email` and `phone` fields are immutable once set. Attempts to change them will be rejected with a 422 error.
 
 ---
 
