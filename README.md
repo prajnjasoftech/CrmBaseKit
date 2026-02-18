@@ -56,14 +56,6 @@ Customer statuses:
 - `inactive` - Temporarily inactive
 - `churned` - Customer has left
 
-### Data Immutability
-
-To maintain data integrity, certain fields become immutable after creation:
-- **Email** - Cannot be changed once set (can be set if originally null)
-- **Phone** - Cannot be changed once set (can be set if originally null)
-
-This ensures contact information remains consistent for audit trails and historical records.
-
 ### Follow-ups
 
 Schedule and track follow-up activities for leads and customers:

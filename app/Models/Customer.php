@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\EntityType;
-use App\Exceptions\ImmutableFieldException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,13 +25,6 @@ class Customer extends Model
     public const STATUS_INACTIVE = 'inactive';
 
     public const STATUS_CHURNED = 'churned';
-
-    /**
-     * Fields that cannot be modified after creation.
-     *
-     * @var array<int, string>
-     */
-    protected static array $immutableFields = ['email', 'phone'];
 
     protected $fillable = [
         'name',
@@ -64,14 +56,6 @@ class Customer extends Model
 
     protected static function booted(): void
     {
-        static::updating(function (Customer $customer): void {
-            foreach (self::$immutableFields as $field) {
-                if ($customer->isDirty($field) && $customer->getOriginal($field) !== null) {
-                    throw ImmutableFieldException::forField($field);
-                }
-            }
-        });
-
         static::deleting(function (Customer $customer): void {
             DB::transaction(function () use ($customer): void {
                 $customer->contactPeople()->delete();

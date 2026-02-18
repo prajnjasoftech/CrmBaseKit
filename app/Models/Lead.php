@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\EntityType;
-use App\Exceptions\ImmutableFieldException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,13 +47,6 @@ class Lead extends Model
 
     public const SOURCE_OTHER = 'other';
 
-    /**
-     * Fields that cannot be modified after creation.
-     *
-     * @var array<int, string>
-     */
-    protected static array $immutableFields = ['email', 'phone'];
-
     protected $fillable = [
         'name',
         'entity_type',
@@ -80,14 +72,6 @@ class Lead extends Model
 
     protected static function booted(): void
     {
-        static::updating(function (Lead $lead): void {
-            foreach (self::$immutableFields as $field) {
-                if ($lead->isDirty($field) && $lead->getOriginal($field) !== null) {
-                    throw ImmutableFieldException::forField($field);
-                }
-            }
-        });
-
         static::deleting(function (Lead $lead): void {
             DB::transaction(function () use ($lead): void {
                 $lead->contactPeople()->delete();
