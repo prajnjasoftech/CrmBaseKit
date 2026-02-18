@@ -71,7 +71,7 @@ class CustomerController extends Controller
     {
         $this->authorize('view', $customer);
 
-        $customer->load(['assignee:id,name', 'business:id,name', 'lead', 'contactPeople']);
+        $customer->load(['assignee:id,name', 'business:id,name', 'lead', 'contactPeople', 'followUps.creator:id,name']);
 
         return Inertia::render('Customers/Show', [
             'customer' => $customer,

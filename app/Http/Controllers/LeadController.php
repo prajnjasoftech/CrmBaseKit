@@ -74,7 +74,7 @@ class LeadController extends Controller
     {
         $this->authorize('view', $lead);
 
-        $lead->load(['assignee:id,name', 'business:id,name', 'customer', 'contactPeople']);
+        $lead->load(['assignee:id,name', 'business:id,name', 'customer', 'contactPeople', 'followUps.creator:id,name']);
 
         return Inertia::render('Leads/Show', [
             'lead' => $lead,

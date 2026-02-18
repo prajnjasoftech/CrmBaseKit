@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\ContactPersonController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -40,9 +42,7 @@ Route::middleware('auth')->group(function (): void {
         ->name('verification.send');
 
     // Dashboard
-    Route::get('/', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Business routes
     Route::resource('businesses', BusinessController::class);
@@ -65,6 +65,16 @@ Route::middleware('auth')->group(function (): void {
         Route::post('contacts/{contact}/set-primary', [ContactPersonController::class, 'setPrimaryForLead'])->name('set-primary');
     });
 
+    // Lead follow-ups
+    Route::prefix('leads/{lead}')->name('leads.follow-ups.')->group(function (): void {
+        Route::get('follow-ups/create', [FollowUpController::class, 'createForLead'])->name('create');
+        Route::post('follow-ups', [FollowUpController::class, 'storeForLead'])->name('store');
+        Route::get('follow-ups/{followUp}/edit', [FollowUpController::class, 'editForLead'])->name('edit');
+        Route::put('follow-ups/{followUp}', [FollowUpController::class, 'updateForLead'])->name('update');
+        Route::delete('follow-ups/{followUp}', [FollowUpController::class, 'destroyForLead'])->name('destroy');
+        Route::post('follow-ups/{followUp}/complete', [FollowUpController::class, 'completeForLead'])->name('complete');
+    });
+
     // Customer routes
     Route::resource('customers', CustomerController::class);
 
@@ -76,5 +86,15 @@ Route::middleware('auth')->group(function (): void {
         Route::put('contacts/{contact}', [ContactPersonController::class, 'updateForCustomer'])->name('update');
         Route::delete('contacts/{contact}', [ContactPersonController::class, 'destroyForCustomer'])->name('destroy');
         Route::post('contacts/{contact}/set-primary', [ContactPersonController::class, 'setPrimaryForCustomer'])->name('set-primary');
+    });
+
+    // Customer follow-ups
+    Route::prefix('customers/{customer}')->name('customers.follow-ups.')->group(function (): void {
+        Route::get('follow-ups/create', [FollowUpController::class, 'createForCustomer'])->name('create');
+        Route::post('follow-ups', [FollowUpController::class, 'storeForCustomer'])->name('store');
+        Route::get('follow-ups/{followUp}/edit', [FollowUpController::class, 'editForCustomer'])->name('edit');
+        Route::put('follow-ups/{followUp}', [FollowUpController::class, 'updateForCustomer'])->name('update');
+        Route::delete('follow-ups/{followUp}', [FollowUpController::class, 'destroyForCustomer'])->name('destroy');
+        Route::post('follow-ups/{followUp}/complete', [FollowUpController::class, 'completeForCustomer'])->name('complete');
     });
 });

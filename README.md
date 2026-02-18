@@ -8,6 +8,7 @@ A Laravel-based CRM starter kit with Leads & Customers management, built with In
 
 - **Leads Management** - Track potential customers through the sales pipeline
 - **Customers Management** - Manage converted customers and their lifecycle
+- **Follow-ups** - Schedule and track follow-up activities for leads and customers
 - **Contact Persons** - Multiple contacts per business entity
 - **Users & Roles** - Role-based access control with granular permissions
 - **Businesses** - Multi-tenant business management
@@ -62,6 +63,16 @@ To maintain data integrity, certain fields become immutable after creation:
 - **Phone** - Cannot be changed once set (can be set if originally null)
 
 This ensures contact information remains consistent for audit trails and historical records.
+
+### Follow-ups
+
+Schedule and track follow-up activities for leads and customers:
+- **Status tracking**: pending, completed, cancelled
+- **Date scheduling**: Set follow-up dates with overdue detection
+- **Notes**: Add context and details for each follow-up
+- **Dashboard integration**: View upcoming and overdue follow-ups at a glance
+- **Polymorphic**: Works with both leads and customers
+- **Cascade delete**: Follow-ups are automatically deleted with their parent entity
 
 ### Contact Persons
 
@@ -162,6 +173,22 @@ After seeding, the following users are available:
 - `PUT /customers/{customer}` - Update customer
 - `DELETE /customers/{customer}` - Delete customer
 
+### Follow-ups (Leads)
+- `GET /leads/{lead}/follow-ups/create` - Show create form
+- `POST /leads/{lead}/follow-ups` - Store new follow-up
+- `GET /leads/{lead}/follow-ups/{followUp}/edit` - Show edit form
+- `PUT /leads/{lead}/follow-ups/{followUp}` - Update follow-up
+- `DELETE /leads/{lead}/follow-ups/{followUp}` - Delete follow-up
+- `POST /leads/{lead}/follow-ups/{followUp}/complete` - Mark as completed
+
+### Follow-ups (Customers)
+- `GET /customers/{customer}/follow-ups/create` - Show create form
+- `POST /customers/{customer}/follow-ups` - Store new follow-up
+- `GET /customers/{customer}/follow-ups/{followUp}/edit` - Show edit form
+- `PUT /customers/{customer}/follow-ups/{followUp}` - Update follow-up
+- `DELETE /customers/{customer}/follow-ups/{followUp}` - Delete follow-up
+- `POST /customers/{customer}/follow-ups/{followUp}/complete` - Mark as completed
+
 ### Contact Persons
 - `GET /leads/{lead}/contacts/create` - Create contact for lead
 - `POST /leads/{lead}/contacts` - Store contact for lead
@@ -198,10 +225,14 @@ app/
 │   └── ImmutableFieldException.php
 ├── Http/
 │   ├── Controllers/
+│   │   ├── DashboardController.php
+│   │   ├── FollowUpController.php
 │   │   ├── LeadController.php
 │   │   ├── CustomerController.php
 │   │   └── ContactPersonController.php
 │   └── Requests/
+│       ├── StoreFollowUpRequest.php
+│       ├── UpdateFollowUpRequest.php
 │       ├── StoreLeadRequest.php
 │       ├── UpdateLeadRequest.php
 │       ├── StoreCustomerRequest.php
@@ -209,31 +240,40 @@ app/
 │       ├── StoreContactPersonRequest.php
 │       └── UpdateContactPersonRequest.php
 ├── Models/
+│   ├── FollowUp.php
 │   ├── Lead.php
 │   ├── Customer.php
 │   └── ContactPerson.php
 ├── Policies/
+│   ├── FollowUpPolicy.php
 │   ├── LeadPolicy.php
 │   ├── CustomerPolicy.php
 │   └── ContactPersonPolicy.php
 └── Services/
+    ├── FollowUpService.php
     └── ContactPersonService.php
 
 resources/js/
 ├── Components/
+│   ├── FollowUpForm.jsx
+│   ├── FollowUpList.jsx
 │   ├── ContactPersonForm.jsx
 │   └── ContactPersonList.jsx
 └── Pages/
+    ├── Dashboard.jsx             # Shows upcoming/overdue follow-ups
+    ├── FollowUps/
+    │   ├── Create.jsx
+    │   └── Edit.jsx
     ├── Leads/
     │   ├── Index.jsx
     │   ├── Create.jsx
-    │   ├── Show.jsx
+    │   ├── Show.jsx              # Includes follow-up management
     │   ├── Edit.jsx
     │   └── Convert.jsx
     ├── Customers/
     │   ├── Index.jsx
     │   ├── Create.jsx
-    │   ├── Show.jsx
+    │   ├── Show.jsx              # Includes follow-up management
     │   └── Edit.jsx
     └── ContactPeople/
         ├── Create.jsx

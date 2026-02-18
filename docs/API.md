@@ -600,13 +600,23 @@ Returns lead details with relationships.
         "assignee": {"id": 1, "name": "Sales Rep"},
         "business": {"id": 1, "name": "Acme Corp"},
         "contact_persons": [],
+        "follow_ups": [
+            {
+                "id": 1,
+                "follow_up_date": "2024-02-15",
+                "status": "pending",
+                "notes": "Call to discuss proposal",
+                "creator": {"id": 1, "name": "Sales Rep"}
+            }
+        ],
         "customer": null,
         "created_at": "2024-01-15T10:30:00Z",
         "updated_at": "2024-01-15T10:30:00Z"
     },
     "statuses": {...},
     "sources": {...},
-    "entityTypes": {...}
+    "entityTypes": {...},
+    "canManageFollowUps": true
 }
 ```
 
@@ -929,11 +939,21 @@ Returns customer details with relationships.
         "assignee": {"id": 1, "name": "Account Manager"},
         "business": {"id": 1, "name": "Acme Corp"},
         "contact_persons": [],
+        "follow_ups": [
+            {
+                "id": 1,
+                "follow_up_date": "2024-02-15",
+                "status": "pending",
+                "notes": "Quarterly review call",
+                "creator": {"id": 1, "name": "Account Manager"}
+            }
+        ],
         "created_at": "2024-01-15T10:30:00Z",
         "updated_at": "2024-01-15T10:30:00Z"
     },
     "statuses": {...},
-    "entityTypes": {...}
+    "entityTypes": {...},
+    "canManageFollowUps": true
 }
 ```
 
@@ -1001,6 +1021,266 @@ Updates customer information.
 Soft-deletes a customer. All associated contact persons are also deleted (cascade).
 
 **Permission Required:** `delete customers`
+
+---
+
+## Follow-up Management Routes
+
+Follow-ups can be scheduled for both leads and customers. They help track required actions and ensure timely customer engagement.
+
+### Follow-up Statuses
+
+| Status | Description |
+|--------|-------------|
+| pending | Follow-up is scheduled and awaiting action |
+| completed | Follow-up has been completed |
+| cancelled | Follow-up was cancelled |
+
+---
+
+### Create Follow-up Form (Lead)
+
+**GET** `/leads/{lead}/follow-ups/create`
+
+Returns the create follow-up form for a lead.
+
+**Permission Required:** `manage follow ups`
+
+**Response Props:**
+```json
+{
+    "lead": {
+        "id": 1,
+        "entity_type": "individual",
+        "first_name": "John",
+        "last_name": "Prospect"
+    },
+    "statuses": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+    }
+}
+```
+
+---
+
+### Store Follow-up (Lead)
+
+**POST** `/leads/{lead}/follow-ups`
+
+Creates a new follow-up for a lead.
+
+**Permission Required:** `manage follow ups`
+
+**Request Body:**
+```json
+{
+    "follow_up_date": "2024-02-15",
+    "notes": "Call to discuss proposal",
+    "status": "pending"
+}
+```
+
+**Required Fields:** `follow_up_date`
+
+**Responses:**
+- `302` - Redirect to lead show page on success
+- `422` - Validation errors
+
+---
+
+### Create Follow-up Form (Customer)
+
+**GET** `/customers/{customer}/follow-ups/create`
+
+Returns the create follow-up form for a customer.
+
+**Permission Required:** `manage follow ups`
+
+**Response Props:**
+```json
+{
+    "customer": {
+        "id": 1,
+        "entity_type": "business",
+        "company_name": "Acme Corp"
+    },
+    "statuses": {...}
+}
+```
+
+---
+
+### Store Follow-up (Customer)
+
+**POST** `/customers/{customer}/follow-ups`
+
+Creates a new follow-up for a customer.
+
+**Permission Required:** `manage follow ups`
+
+**Request Body:** Same as Store Follow-up (Lead)
+
+---
+
+### Edit Follow-up (Lead)
+
+**GET** `/leads/{lead}/follow-ups/{followUp}/edit`
+
+Returns the edit form for a lead's follow-up.
+
+**Permission Required:** `manage follow ups`
+
+**Response Props:**
+```json
+{
+    "lead": {...},
+    "followUp": {
+        "id": 1,
+        "follow_up_date": "2024-02-15",
+        "status": "pending",
+        "notes": "Call to discuss proposal",
+        "created_by": 1,
+        "creator": {"id": 1, "name": "Sales Rep"}
+    },
+    "statuses": {...}
+}
+```
+
+---
+
+### Edit Follow-up (Customer)
+
+**GET** `/customers/{customer}/follow-ups/{followUp}/edit`
+
+Returns the edit form for a customer's follow-up.
+
+**Permission Required:** `manage follow ups`
+
+---
+
+### Update Follow-up (Lead)
+
+**PUT** `/leads/{lead}/follow-ups/{followUp}`
+
+Updates a lead's follow-up.
+
+**Permission Required:** `manage follow ups`
+
+**Request Body:**
+```json
+{
+    "follow_up_date": "2024-02-20",
+    "notes": "Rescheduled call",
+    "status": "pending"
+}
+```
+
+---
+
+### Update Follow-up (Customer)
+
+**PUT** `/customers/{customer}/follow-ups/{followUp}`
+
+Updates a customer's follow-up.
+
+**Permission Required:** `manage follow ups`
+
+**Request Body:** Same as Update Follow-up (Lead)
+
+---
+
+### Delete Follow-up (Lead)
+
+**DELETE** `/leads/{lead}/follow-ups/{followUp}`
+
+Deletes a lead's follow-up.
+
+**Permission Required:** `manage follow ups`
+
+---
+
+### Delete Follow-up (Customer)
+
+**DELETE** `/customers/{customer}/follow-ups/{followUp}`
+
+Deletes a customer's follow-up.
+
+**Permission Required:** `manage follow ups`
+
+---
+
+### Complete Follow-up (Lead)
+
+**POST** `/leads/{lead}/follow-ups/{followUp}/complete`
+
+Marks a lead's follow-up as completed.
+
+**Permission Required:** `manage follow ups`
+
+**Restrictions:** Follow-up must have status "pending"
+
+**Result:**
+- Status changed to "completed"
+- `completed_by` set to current user
+- `completed_at` set to current timestamp
+
+---
+
+### Complete Follow-up (Customer)
+
+**POST** `/customers/{customer}/follow-ups/{followUp}/complete`
+
+Marks a customer's follow-up as completed.
+
+**Permission Required:** `manage follow ups`
+
+**Restrictions:** Follow-up must have status "pending"
+
+---
+
+## Dashboard Routes
+
+### Dashboard
+
+**GET** `/dashboard`
+
+Returns the main dashboard with follow-up statistics.
+
+**Response Props:**
+```json
+{
+    "stats": {
+        "totalLeads": 150,
+        "totalCustomers": 75,
+        "pendingFollowUps": 12,
+        "overdueFollowUps": 3
+    },
+    "upcomingFollowUps": [
+        {
+            "id": 1,
+            "follow_up_date": "2024-02-15",
+            "status": "pending",
+            "notes": "Call to discuss proposal",
+            "parent_type": "lead",
+            "parent_id": 5,
+            "parent_name": "John Prospect"
+        }
+    ],
+    "overdueFollowUps": [
+        {
+            "id": 2,
+            "follow_up_date": "2024-02-10",
+            "status": "pending",
+            "notes": "Send contract",
+            "parent_type": "customer",
+            "parent_id": 3,
+            "parent_name": "Acme Corp"
+        }
+    ]
+}
+```
 
 ---
 

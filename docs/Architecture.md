@@ -74,15 +74,25 @@ CRM Base Kit is a production-grade starter kit built with Laravel 12, React 19, 
 - Automatic transfer during lead conversion
 - Cascade delete when parent entity is deleted
 
-### 7. RBAC (Role-Based Access Control)
+### 7. Follow-ups Module
+- Schedule follow-up activities for leads and customers
+- **Polymorphic relationships**: Works with both Lead and Customer models
+- **Status tracking**: pending, completed, cancelled
+- **Date scheduling**: Set follow-up dates with automatic overdue detection
+- **Dashboard integration**: View upcoming (next 7 days) and overdue follow-ups
+- **Completion tracking**: Records who completed follow-ups and when
+- **Cascade delete**: Follow-ups deleted when parent entity is deleted
+- **Authorization**: Managed through `manage follow ups` permission
+
+### 8. RBAC (Role-Based Access Control)
 5 predefined roles with granular permissions:
 
 | Role | Permissions |
 |------|-------------|
 | super-admin | Full system access |
-| admin | Manage users, businesses, leads, customers, contact persons, news |
-| manager | View users, manage businesses, leads, customers, contact persons |
-| sales | Manage leads, customers, and contact persons |
+| admin | Manage users, businesses, leads, customers, contact persons, follow-ups, news |
+| manager | View users, manage businesses, leads, customers, contact persons, follow-ups |
+| sales | Manage leads, customers, contact persons, and follow-ups |
 | user | View-only access to leads, customers, news |
 
 ## Directory Structure
@@ -103,6 +113,8 @@ CRMBaseKit/
 │   │   │   ├── BusinessController.php
 │   │   │   ├── ContactPersonController.php
 │   │   │   ├── CustomerController.php
+│   │   │   ├── DashboardController.php
+│   │   │   ├── FollowUpController.php
 │   │   │   ├── LeadController.php
 │   │   │   └── UserController.php
 │   │   ├── Middleware/
@@ -113,31 +125,37 @@ CRMBaseKit/
 │   │       ├── StoreBusinessRequest.php
 │   │       ├── StoreContactPersonRequest.php
 │   │       ├── StoreCustomerRequest.php
+│   │       ├── StoreFollowUpRequest.php
 │   │       ├── StoreLeadRequest.php
 │   │       ├── StoreUserRequest.php
 │   │       ├── UpdateBusinessRequest.php
 │   │       ├── UpdateContactPersonRequest.php
 │   │       ├── UpdateCustomerRequest.php
+│   │       ├── UpdateFollowUpRequest.php
 │   │       ├── UpdateLeadRequest.php
 │   │       └── UpdateUserRequest.php
 │   ├── Models/
 │   │   ├── Business.php
 │   │   ├── ContactPerson.php
 │   │   ├── Customer.php
+│   │   ├── FollowUp.php
 │   │   ├── Lead.php
 │   │   └── User.php
 │   ├── Policies/
 │   │   ├── BusinessPolicy.php
 │   │   ├── ContactPersonPolicy.php
 │   │   ├── CustomerPolicy.php
+│   │   ├── FollowUpPolicy.php
 │   │   ├── LeadPolicy.php
 │   │   └── UserPolicy.php
 │   └── Services/
-│       └── ContactPersonService.php  # Business logic for contact persons
+│       ├── ContactPersonService.php  # Business logic for contact persons
+│       └── FollowUpService.php       # Business logic for follow-ups
 ├── database/
 │   ├── factories/
 │   │   ├── BusinessFactory.php
 │   │   ├── CustomerFactory.php
+│   │   ├── FollowUpFactory.php
 │   │   ├── LeadFactory.php
 │   │   └── UserFactory.php
 │   ├── migrations/
@@ -158,6 +176,8 @@ CRMBaseKit/
 │       ├── Components/
 │       │   ├── ContactPersonForm.jsx   # Reusable contact form
 │       │   ├── ContactPersonList.jsx   # Contact list with actions
+│       │   ├── FollowUpForm.jsx        # Reusable follow-up form
+│       │   ├── FollowUpList.jsx        # Follow-up list with actions
 │       │   ├── Sidebar.jsx
 │       │   ├── Header.jsx
 │       │   └── Footer.jsx
@@ -182,12 +202,15 @@ CRMBaseKit/
 │           │   ├── Index.jsx
 │           │   ├── Create.jsx
 │           │   ├── Edit.jsx
-│           │   └── Show.jsx
+│           │   └── Show.jsx          # Includes follow-up management
+│           ├── FollowUps/
+│           │   ├── Create.jsx
+│           │   └── Edit.jsx
 │           ├── Leads/
 │           │   ├── Index.jsx
 │           │   ├── Create.jsx
 │           │   ├── Edit.jsx
-│           │   ├── Show.jsx
+│           │   ├── Show.jsx          # Includes follow-up management
 │           │   └── Convert.jsx
 │           ├── Users/
 │           │   ├── Index.jsx
@@ -203,6 +226,7 @@ CRMBaseKit/
         ├── BusinessTest.php
         ├── ContactPersonTest.php
         ├── CustomerTest.php
+        ├── FollowUpTest.php
         ├── LeadTest.php
         └── UserTest.php
 ```
@@ -314,6 +338,7 @@ const handleSubmit = (e) => {
 | leads | Sales leads with pipeline status and entity_type |
 | customers | Converted leads and direct customers with entity_type |
 | contact_persons | Contact persons for business leads/customers |
+| follow_ups | Scheduled follow-up activities for leads/customers |
 | roles | Spatie Permission roles |
 | permissions | Spatie Permission permissions |
 | model_has_roles | Role-user pivot |
@@ -342,6 +367,21 @@ Both `leads` and `customers` tables include:
 | position | string | Job title (nullable) |
 | is_primary | boolean | Whether this is the primary contact |
 | notes | text | Additional notes (nullable) |
+
+### Follow-ups Table
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| followable_type | string | 'App\Models\Lead' or 'App\Models\Customer' |
+| followable_id | bigint | ID of parent lead/customer |
+| follow_up_date | date | Scheduled date for follow-up |
+| status | string | pending, completed, or cancelled |
+| notes | text | Follow-up details (nullable) |
+| created_by | bigint | User who created the follow-up |
+| completed_by | bigint | User who completed the follow-up (nullable) |
+| completed_at | timestamp | When follow-up was completed (nullable) |
+| created_at | timestamp | Creation timestamp |
+| updated_at | timestamp | Last update timestamp |
 
 ### Lead Status Flow
 ```

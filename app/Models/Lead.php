@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property EntityType $entity_type
@@ -88,7 +89,10 @@ class Lead extends Model
         });
 
         static::deleting(function (Lead $lead): void {
-            $lead->contactPeople()->delete();
+            DB::transaction(function () use ($lead): void {
+                $lead->contactPeople()->delete();
+                $lead->followUps()->delete();
+            });
         });
     }
 
@@ -153,6 +157,14 @@ class Lead extends Model
     public function contactPeople(): MorphMany
     {
         return $this->morphMany(ContactPerson::class, 'contactable');
+    }
+
+    /**
+     * @return MorphMany<FollowUp, $this>
+     */
+    public function followUps(): MorphMany
+    {
+        return $this->morphMany(FollowUp::class, 'followable');
     }
 
     public function isConverted(): bool
