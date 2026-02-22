@@ -1,8 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '../../Layouts/AdminLayout';
 
 export default function Index({ businesses, auth, flash, filters }) {
+    const { auth: { user } } = usePage().props;
+    const can = (permission) => user?.permissions?.includes(permission) ?? false;
     const [search, setSearch] = useState(filters?.search || '');
 
     const handleDelete = (id) => {
@@ -36,10 +38,12 @@ export default function Index({ businesses, auth, flash, filters }) {
                     <h1 className="page-title">Businesses</h1>
                     <p className="page-subtitle">Manage registered businesses</p>
                 </div>
-                <Link href="/businesses/create" className="btn btn-primary">
-                    <i className="bi bi-plus-lg me-2"></i>
-                    Add Business
-                </Link>
+{can('create businesses') && (
+                    <Link href="/businesses/create" className="btn btn-primary">
+                        <i className="bi bi-plus-lg me-2"></i>
+                        Add Business
+                    </Link>
+                )}
             </div>
 
             {flash?.success && (
@@ -125,20 +129,24 @@ export default function Index({ businesses, auth, flash, filters }) {
                                                     >
                                                         <i className="bi bi-eye"></i>
                                                     </Link>
-                                                    <Link
-                                                        href={`/businesses/${business.id}/edit`}
-                                                        className="btn btn-action btn-outline-primary"
-                                                        title="Edit"
-                                                    >
-                                                        <i className="bi bi-pencil"></i>
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDelete(business.id)}
-                                                        className="btn btn-action btn-outline-danger"
-                                                        title="Delete"
-                                                    >
-                                                        <i className="bi bi-trash"></i>
-                                                    </button>
+                                                    {can('edit businesses') && (
+                                                        <Link
+                                                            href={`/businesses/${business.id}/edit`}
+                                                            className="btn btn-action btn-outline-primary"
+                                                            title="Edit"
+                                                        >
+                                                            <i className="bi bi-pencil"></i>
+                                                        </Link>
+                                                    )}
+                                                    {can('delete businesses') && (
+                                                        <button
+                                                            onClick={() => handleDelete(business.id)}
+                                                            className="btn btn-action btn-outline-danger"
+                                                            title="Delete"
+                                                        >
+                                                            <i className="bi bi-trash"></i>
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>

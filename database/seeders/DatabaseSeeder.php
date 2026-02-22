@@ -50,9 +50,10 @@ class DatabaseSeeder extends Seeder
         ]);
         $user->assignRole('user');
 
-        // Seed businesses, leads, and customers
+        // Seed businesses, services, leads, and customers
         $this->call([
             BusinessSeeder::class,
+            ServiceSeeder::class,
             LeadSeeder::class,
             CustomerSeeder::class,
         ]);

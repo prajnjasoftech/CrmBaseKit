@@ -58,6 +58,7 @@ class Lead extends Model
         'notes',
         'assigned_to',
         'business_id',
+        'service_id',
     ];
 
     /**
@@ -125,6 +126,14 @@ class Lead extends Model
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);
+    }
+
+    /**
+     * @return BelongsTo<Service, $this>
+     */
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
     }
 
     /**

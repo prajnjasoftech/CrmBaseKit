@@ -1,9 +1,12 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
 import ContactPersonList from '../../Components/ContactPersonList';
 import FollowUpList from '../../Components/FollowUpList';
 
 export default function Show({ lead, statuses, sources, entityTypes, auth }) {
+    const { auth: { user } } = usePage().props;
+    const can = (permission) => user?.permissions?.includes(permission) ?? false;
+
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this lead?')) {
             router.delete(`/leads/${lead.id}`);
@@ -37,20 +40,24 @@ export default function Show({ lead, statuses, sources, entityTypes, auth }) {
                         <i className="bi bi-arrow-left me-2"></i>
                         Back to List
                     </Link>
-                    <Link href={`/leads/${lead.id}/edit`} className="btn btn-primary">
-                        <i className="bi bi-pencil me-2"></i>
-                        Edit
-                    </Link>
-                    {canConvert && (
+                    {can('edit leads') && (
+                        <Link href={`/leads/${lead.id}/edit`} className="btn btn-primary">
+                            <i className="bi bi-pencil me-2"></i>
+                            Edit
+                        </Link>
+                    )}
+                    {can('convert leads') && canConvert && (
                         <Link href={`/leads/${lead.id}/convert`} className="btn btn-success">
                             <i className="bi bi-person-check me-2"></i>
                             Convert to Customer
                         </Link>
                     )}
-                    <button onClick={handleDelete} className="btn btn-outline-danger">
-                        <i className="bi bi-trash me-2"></i>
-                        Delete
-                    </button>
+                    {can('delete leads') && (
+                        <button onClick={handleDelete} className="btn btn-outline-danger">
+                            <i className="bi bi-trash me-2"></i>
+                            Delete
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -118,6 +125,16 @@ export default function Show({ lead, statuses, sources, entityTypes, auth }) {
                                         ) : '-'}
                                     </div>
                                 </div>
+                                <div className="col-md-6">
+                                    <label className="form-label text-muted small mb-1">Service</label>
+                                    <div>
+                                        {lead.service ? (
+                                            <Link href={`/services/${lead.service.id}`}>
+                                                {lead.service.name}
+                                            </Link>
+                                        ) : '-'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -126,17 +143,19 @@ export default function Show({ lead, statuses, sources, entityTypes, auth }) {
                         <div className="admin-card mb-4">
                             <div className="card-header d-flex justify-content-between align-items-center">
                                 <h2 className="card-title mb-0">Contact Persons</h2>
-                                <Link href={`/leads/${lead.id}/contacts/create`} className="btn btn-primary btn-sm">
-                                    <i className="bi bi-plus me-1"></i>
-                                    Add Contact
-                                </Link>
+                                {can('manage contact persons') && (
+                                    <Link href={`/leads/${lead.id}/contacts/create`} className="btn btn-primary btn-sm">
+                                        <i className="bi bi-plus me-1"></i>
+                                        Add Contact
+                                    </Link>
+                                )}
                             </div>
                             <div className="card-body">
                                 <ContactPersonList
                                     contacts={lead.contact_people || []}
                                     parentType="lead"
                                     parentId={lead.id}
-                                    canManage={true}
+                                    canManage={can('manage contact persons')}
                                 />
                             </div>
                         </div>
@@ -145,17 +164,19 @@ export default function Show({ lead, statuses, sources, entityTypes, auth }) {
                     <div className="admin-card mb-4">
                         <div className="card-header d-flex justify-content-between align-items-center">
                             <h2 className="card-title mb-0">Follow-ups</h2>
-                            <Link href={`/leads/${lead.id}/follow-ups/create`} className="btn btn-primary btn-sm">
-                                <i className="bi bi-plus me-1"></i>
-                                Schedule Follow-up
-                            </Link>
+                            {can('manage follow ups') && (
+                                <Link href={`/leads/${lead.id}/follow-ups/create`} className="btn btn-primary btn-sm">
+                                    <i className="bi bi-plus me-1"></i>
+                                    Schedule Follow-up
+                                </Link>
+                            )}
                         </div>
                         <div className="card-body">
                             <FollowUpList
                                 followUps={lead.follow_ups || []}
                                 parentType="lead"
                                 parentId={lead.id}
-                                canManage={true}
+                                canManage={can('manage follow ups')}
                             />
                         </div>
                     </div>

@@ -2,46 +2,45 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '../../Layouts/AdminLayout';
 
-export default function Index({ customers, statuses, auth, flash, filters }) {
+export default function Index({ services, auth, flash, filters }) {
     const { auth: { user } } = usePage().props;
     const can = (permission) => user?.permissions?.includes(permission) ?? false;
     const [search, setSearch] = useState(filters?.search || '');
 
     const handleDelete = (id) => {
-        if (confirm('Are you sure you want to delete this customer?')) {
-            router.delete(`/customers/${id}`);
+        if (confirm('Are you sure you want to delete this service?')) {
+            router.delete(`/services/${id}`);
         }
     };
 
     const handleSearch = (e) => {
         e.preventDefault();
-        router.get('/customers', { search }, { preserveState: true, preserveScroll: true });
+        router.get('/services', { search }, { preserveState: true, preserveScroll: true });
     };
 
     const clearSearch = () => {
         setSearch('');
-        router.get('/customers', {}, { preserveState: true, preserveScroll: true });
+        router.get('/services', {}, { preserveState: true, preserveScroll: true });
     };
 
     const statusColors = {
         active: 'status-active',
         inactive: 'status-inactive',
-        churned: 'status-churned',
     };
 
     return (
         <AdminLayout user={auth?.user}>
-            <Head title="Customers" />
+            <Head title="Services" />
 
             <div className="page-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 className="page-title">Customers</h1>
-                    <p className="page-subtitle">Manage your customers</p>
+                    <h1 className="page-title">Services</h1>
+                    <p className="page-subtitle">Manage available services</p>
                 </div>
-{can('create customers') && (
-                    <Link href="/customers/create" className="btn btn-primary">
+                {can('create services') && (
+                    <Link href="/services/create" className="btn btn-primary">
                         <i className="bi bi-plus-lg me-2"></i>
-                        Add Customer
+                        Add Service
                     </Link>
                 )}
             </div>
@@ -63,7 +62,7 @@ export default function Index({ customers, statuses, auth, flash, filters }) {
                             <input
                                 type="text"
                                 className="form-control"
-                                placeholder="Search by name, email, phone, or company..."
+                                placeholder="Search by name or description..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
@@ -85,69 +84,63 @@ export default function Index({ customers, statuses, auth, flash, filters }) {
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Contact</th>
-                                    <th>Company</th>
+                                    <th>Description</th>
                                     <th>Status</th>
-                                    <th>Assigned To</th>
-                                    <th>Source</th>
+                                    <th>Created</th>
                                     <th width="120">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {customers.data.length === 0 ? (
+                                {services.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7" className="text-center text-muted py-4">
-                                            No customers found. Create your first customer or convert a lead.
+                                        <td colSpan="5" className="text-center text-muted py-4">
+                                            No services found. Create your first service.
                                         </td>
                                     </tr>
                                 ) : (
-                                    customers.data.map((customer) => (
-                                        <tr key={customer.id}>
+                                    services.data.map((service) => (
+                                        <tr key={service.id}>
                                             <td>
-                                                <Link href={`/customers/${customer.id}`} className="fw-medium text-decoration-none">
-                                                    {customer.name}
+                                                <Link href={`/services/${service.id}`} className="fw-medium text-decoration-none">
+                                                    {service.name}
                                                 </Link>
                                             </td>
-                                            <td>
-                                                {customer.email && <div className="small">{customer.email}</div>}
-                                                {customer.phone && <div className="small text-muted">{customer.phone}</div>}
-                                                {!customer.email && !customer.phone && '-'}
+                                            <td className="text-muted">
+                                                {service.description ? (
+                                                    service.description.length > 50
+                                                        ? service.description.substring(0, 50) + '...'
+                                                        : service.description
+                                                ) : '-'}
                                             </td>
-                                            <td>{customer.company || '-'}</td>
                                             <td>
-                                                <span className={`status-badge ${statusColors[customer.status] || ''}`}>
-                                                    {statuses[customer.status] || customer.status}
+                                                <span className={`status-badge ${statusColors[service.status]}`}>
+                                                    {service.status.charAt(0).toUpperCase() + service.status.slice(1)}
                                                 </span>
                                             </td>
-                                            <td>{customer.assignee?.name || '-'}</td>
-                                            <td>
-                                                {customer.converted_from_lead_id ? (
-                                                    <span className="badge bg-info">From Lead</span>
-                                                ) : (
-                                                    <span className="badge bg-secondary">Direct</span>
-                                                )}
+                                            <td className="text-muted">
+                                                {new Date(service.created_at).toLocaleDateString()}
                                             </td>
                                             <td>
                                                 <div className="d-flex gap-1">
                                                     <Link
-                                                        href={`/customers/${customer.id}`}
+                                                        href={`/services/${service.id}`}
                                                         className="btn btn-action btn-outline-secondary"
                                                         title="View"
                                                     >
                                                         <i className="bi bi-eye"></i>
                                                     </Link>
-                                                    {can('edit customers') && (
+                                                    {can('edit services') && (
                                                         <Link
-                                                            href={`/customers/${customer.id}/edit`}
+                                                            href={`/services/${service.id}/edit`}
                                                             className="btn btn-action btn-outline-primary"
                                                             title="Edit"
                                                         >
                                                             <i className="bi bi-pencil"></i>
                                                         </Link>
                                                     )}
-                                                    {can('delete customers') && (
+                                                    {can('delete services') && (
                                                         <button
-                                                            onClick={() => handleDelete(customer.id)}
+                                                            onClick={() => handleDelete(service.id)}
                                                             className="btn btn-action btn-outline-danger"
                                                             title="Delete"
                                                         >
@@ -164,11 +157,12 @@ export default function Index({ customers, statuses, auth, flash, filters }) {
                     </div>
                 </div>
 
-                {customers.last_page > 1 && (
+                {/* Pagination */}
+                {services.last_page > 1 && (
                     <div className="card-footer">
                         <nav>
                             <ul className="pagination pagination-sm mb-0 justify-content-center">
-                                {customers.links.map((link, index) => (
+                                {services.links.map((link, index) => (
                                     <li key={index} className={`page-item ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}`}>
                                         <Link
                                             href={link.url || '#'}

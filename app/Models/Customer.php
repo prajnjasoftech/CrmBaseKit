@@ -8,6 +8,7 @@ use App\Enums\EntityType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +61,7 @@ class Customer extends Model
             DB::transaction(function () use ($customer): void {
                 $customer->contactPeople()->delete();
                 $customer->followUps()->delete();
+                $customer->projects()->delete();
             });
         });
     }
@@ -114,6 +116,14 @@ class Customer extends Model
     public function followUps(): MorphMany
     {
         return $this->morphMany(FollowUp::class, 'followable');
+    }
+
+    /**
+     * @return HasMany<Project, $this>
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
     }
 
     public function getFullAddressAttribute(): string

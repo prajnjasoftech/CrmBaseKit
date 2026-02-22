@@ -9,9 +9,11 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\LeadController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // Guest routes (not authenticated)
 Route::middleware('guest')->group(function (): void {
@@ -49,6 +51,12 @@ Route::middleware('auth')->group(function (): void {
 
     // User Management routes
     Route::resource('users', UserController::class);
+
+    // Role Management routes
+    Route::resource('roles', RoleController::class);
+
+    // Service Management routes
+    Route::resource('services', ServiceController::class);
 
     // Lead routes
     Route::get('leads/{lead}/convert', [LeadController::class, 'showConvert'])->name('leads.convert');
@@ -96,5 +104,15 @@ Route::middleware('auth')->group(function (): void {
         Route::put('follow-ups/{followUp}', [FollowUpController::class, 'updateForCustomer'])->name('update');
         Route::delete('follow-ups/{followUp}', [FollowUpController::class, 'destroyForCustomer'])->name('destroy');
         Route::post('follow-ups/{followUp}/complete', [FollowUpController::class, 'completeForCustomer'])->name('complete');
+    });
+
+    // Customer projects
+    Route::prefix('customers/{customer}')->name('customers.projects.')->group(function (): void {
+        Route::get('projects/create', [ProjectController::class, 'create'])->name('create');
+        Route::post('projects', [ProjectController::class, 'store'])->name('store');
+        Route::get('projects/{project}', [ProjectController::class, 'show'])->name('show');
+        Route::get('projects/{project}/edit', [ProjectController::class, 'edit'])->name('edit');
+        Route::put('projects/{project}', [ProjectController::class, 'update'])->name('update');
+        Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('destroy');
     });
 });

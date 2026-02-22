@@ -1,8 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '../../Layouts/AdminLayout';
 
 export default function Index({ users, auth, filters }) {
+    const { auth: { user } } = usePage().props;
+    const can = (permission) => user?.permissions?.includes(permission) ?? false;
     const [search, setSearch] = useState(filters?.search || '');
 
     const handleDelete = (userId) => {
@@ -38,10 +40,12 @@ export default function Index({ users, auth, filters }) {
                     <h1 className="page-title">Users</h1>
                     <p className="page-subtitle">Manage system users and their roles</p>
                 </div>
-                <Link href="/users/create" className="btn btn-primary">
-                    <i className="bi bi-plus-lg me-2"></i>
-                    Add User
-                </Link>
+{can('create users') && (
+                    <Link href="/users/create" className="btn btn-primary">
+                        <i className="bi bi-plus-lg me-2"></i>
+                        Add User
+                    </Link>
+                )}
             </div>
 
             <div className="admin-card mb-3">
@@ -83,17 +87,17 @@ export default function Index({ users, auth, filters }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.data.map((user) => (
-                                    <tr key={user.id}>
+                                {users.data.map((userItem) => (
+                                    <tr key={userItem.id}>
                                         <td>
-                                            <Link href={`/users/${user.id}`} className="text-decoration-none">
-                                                {user.name}
+                                            <Link href={`/users/${userItem.id}`} className="text-decoration-none">
+                                                {userItem.name}
                                             </Link>
                                         </td>
-                                        <td>{user.email}</td>
+                                        <td>{userItem.email}</td>
                                         <td>
-                                            {user.roles && user.roles.length > 0 ? (
-                                                user.roles.map((role) => (
+                                            {userItem.roles && userItem.roles.length > 0 ? (
+                                                userItem.roles.map((role) => (
                                                     <span
                                                         key={role.id}
                                                         className={`badge ${roleColors[role.name] || 'bg-secondary'} me-1`}
@@ -105,27 +109,31 @@ export default function Index({ users, auth, filters }) {
                                                 <span className="badge bg-light text-muted">No role</span>
                                             )}
                                         </td>
-                                        <td>{new Date(user.created_at).toLocaleDateString()}</td>
+                                        <td>{new Date(userItem.created_at).toLocaleDateString()}</td>
                                         <td className="text-end">
                                             <div className="btn-group btn-group-sm">
                                                 <Link
-                                                    href={`/users/${user.id}`}
+                                                    href={`/users/${userItem.id}`}
                                                     className="btn btn-outline-secondary"
                                                 >
                                                     <i className="bi bi-eye"></i>
                                                 </Link>
-                                                <Link
-                                                    href={`/users/${user.id}/edit`}
-                                                    className="btn btn-outline-secondary"
-                                                >
-                                                    <i className="bi bi-pencil"></i>
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(user.id)}
-                                                    className="btn btn-outline-danger"
-                                                >
-                                                    <i className="bi bi-trash"></i>
-                                                </button>
+                                                {can('edit users') && (
+                                                    <Link
+                                                        href={`/users/${userItem.id}/edit`}
+                                                        className="btn btn-outline-secondary"
+                                                    >
+                                                        <i className="bi bi-pencil"></i>
+                                                    </Link>
+                                                )}
+                                                {can('delete users') && (
+                                                    <button
+                                                        onClick={() => handleDelete(userItem.id)}
+                                                        className="btn btn-outline-danger"
+                                                    >
+                                                        <i className="bi bi-trash"></i>
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

@@ -1,10 +1,13 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
 
-export default function Show({ user, auth }) {
+export default function Show({ user: userProfile, auth }) {
+    const { auth: { user: authUser } } = usePage().props;
+    const can = (permission) => authUser?.permissions?.includes(permission) ?? false;
+
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this user?')) {
-            router.delete(`/users/${user.id}`);
+            router.delete(`/users/${userProfile.id}`);
         }
     };
 
@@ -16,15 +19,15 @@ export default function Show({ user, auth }) {
         'user': 'bg-secondary',
     };
 
-    const isSelf = auth?.user?.id === user.id;
+    const isSelf = auth?.user?.id === userProfile.id;
 
     return (
         <AdminLayout user={auth?.user}>
-            <Head title={user.name} />
+            <Head title={userProfile.name} />
 
             <div className="page-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 className="page-title">{user.name}</h1>
+                    <h1 className="page-title">{userProfile.name}</h1>
                     <p className="page-subtitle">User Profile</p>
                 </div>
                 <div className="d-flex gap-2">
@@ -32,11 +35,13 @@ export default function Show({ user, auth }) {
                         <i className="bi bi-arrow-left me-2"></i>
                         Back to List
                     </Link>
-                    <Link href={`/users/${user.id}/edit`} className="btn btn-primary">
-                        <i className="bi bi-pencil me-2"></i>
-                        Edit
-                    </Link>
-                    {!isSelf && (
+                    {can('edit users') && (
+                        <Link href={`/users/${userProfile.id}/edit`} className="btn btn-primary">
+                            <i className="bi bi-pencil me-2"></i>
+                            Edit
+                        </Link>
+                    )}
+                    {can('delete users') && !isSelf && (
                         <button onClick={handleDelete} className="btn btn-outline-danger">
                             <i className="bi bi-trash me-2"></i>
                             Delete
@@ -55,19 +60,19 @@ export default function Show({ user, auth }) {
                             <div className="row g-4">
                                 <div className="col-md-6">
                                     <label className="form-label text-muted small mb-1">Full Name</label>
-                                    <div className="fw-medium">{user.name}</div>
+                                    <div className="fw-medium">{userProfile.name}</div>
                                 </div>
                                 <div className="col-md-6">
                                     <label className="form-label text-muted small mb-1">Email Address</label>
                                     <div>
-                                        <a href={`mailto:${user.email}`}>{user.email}</a>
+                                        <a href={`mailto:${userProfile.email}`}>{userProfile.email}</a>
                                     </div>
                                 </div>
                                 <div className="col-md-6">
                                     <label className="form-label text-muted small mb-1">Role</label>
                                     <div>
-                                        {user.roles && user.roles.length > 0 ? (
-                                            user.roles.map((role) => (
+                                        {userProfile.roles && userProfile.roles.length > 0 ? (
+                                            userProfile.roles.map((role) => (
                                                 <span
                                                     key={role.id}
                                                     className={`badge ${roleColors[role.name] || 'bg-secondary'}`}
@@ -83,7 +88,7 @@ export default function Show({ user, auth }) {
                                 <div className="col-md-6">
                                     <label className="form-label text-muted small mb-1">Email Verified</label>
                                     <div>
-                                        {user.email_verified_at ? (
+                                        {userProfile.email_verified_at ? (
                                             <span className="badge bg-success">
                                                 <i className="bi bi-check-circle me-1"></i>
                                                 Verified
@@ -109,7 +114,7 @@ export default function Show({ user, auth }) {
                                 <p className="text-muted mb-3">
                                     Keep your account secure by using a strong password.
                                 </p>
-                                <Link href={`/users/${user.id}/edit`} className="btn btn-outline-primary">
+                                <Link href={`/users/${userProfile.id}/edit`} className="btn btn-outline-primary">
                                     <i className="bi bi-shield-lock me-2"></i>
                                     Change Password
                                 </Link>
@@ -127,10 +132,10 @@ export default function Show({ user, auth }) {
                             <div className="avatar-placeholder mb-3">
                                 <i className="bi bi-person-circle display-1 text-muted"></i>
                             </div>
-                            <h5 className="mb-1">{user.name}</h5>
-                            {user.roles && user.roles.length > 0 && (
-                                <span className={`badge ${roleColors[user.roles[0].name] || 'bg-secondary'}`}>
-                                    {user.roles[0].name}
+                            <h5 className="mb-1">{userProfile.name}</h5>
+                            {userProfile.roles && userProfile.roles.length > 0 && (
+                                <span className={`badge ${roleColors[userProfile.roles[0].name] || 'bg-secondary'}`}>
+                                    {userProfile.roles[0].name}
                                 </span>
                             )}
                         </div>
@@ -143,11 +148,11 @@ export default function Show({ user, auth }) {
                         <div className="card-body">
                             <dl className="mb-0">
                                 <dt className="text-muted small">User ID</dt>
-                                <dd>{user.id}</dd>
+                                <dd>{userProfile.id}</dd>
                                 <dt className="text-muted small">Created At</dt>
-                                <dd>{new Date(user.created_at).toLocaleString()}</dd>
+                                <dd>{new Date(userProfile.created_at).toLocaleString()}</dd>
                                 <dt className="text-muted small">Last Updated</dt>
-                                <dd className="mb-0">{new Date(user.updated_at).toLocaleString()}</dd>
+                                <dd className="mb-0">{new Date(userProfile.updated_at).toLocaleString()}</dd>
                             </dl>
                         </div>
                     </div>

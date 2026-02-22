@@ -28,9 +28,9 @@ class CustomerController extends Controller
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('company', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%");
+                        ->orWhere('company', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
             ->latest()
@@ -71,7 +71,15 @@ class CustomerController extends Controller
     {
         $this->authorize('view', $customer);
 
-        $customer->load(['assignee:id,name', 'business:id,name', 'lead', 'contactPeople', 'followUps.creator:id,name']);
+        $customer->load([
+            'assignee:id,name',
+            'business:id,name',
+            'lead',
+            'contactPeople',
+            'followUps.creator:id,name',
+            'projects.service:id,name',
+            'projects.assignee:id,name',
+        ]);
 
         return Inertia::render('Customers/Show', [
             'customer' => $customer,

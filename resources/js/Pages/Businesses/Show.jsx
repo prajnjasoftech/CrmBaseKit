@@ -1,7 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
 
 export default function Show({ business, auth }) {
+    const { auth: { user } } = usePage().props;
+    const can = (permission) => user?.permissions?.includes(permission) ?? false;
+
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this business?')) {
             router.delete(`/businesses/${business.id}`);
@@ -28,14 +31,18 @@ export default function Show({ business, auth }) {
                         <i className="bi bi-arrow-left me-2"></i>
                         Back to List
                     </Link>
-                    <Link href={`/businesses/${business.id}/edit`} className="btn btn-primary">
-                        <i className="bi bi-pencil me-2"></i>
-                        Edit
-                    </Link>
-                    <button onClick={handleDelete} className="btn btn-outline-danger">
-                        <i className="bi bi-trash me-2"></i>
-                        Delete
-                    </button>
+                    {can('edit businesses') && (
+                        <Link href={`/businesses/${business.id}/edit`} className="btn btn-primary">
+                            <i className="bi bi-pencil me-2"></i>
+                            Edit
+                        </Link>
+                    )}
+                    {can('delete businesses') && (
+                        <button onClick={handleDelete} className="btn btn-outline-danger">
+                            <i className="bi bi-trash me-2"></i>
+                            Delete
+                        </button>
+                    )}
                 </div>
             </div>
 

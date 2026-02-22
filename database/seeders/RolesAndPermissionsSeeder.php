@@ -55,6 +55,18 @@ class RolesAndPermissionsSeeder extends Seeder
             // Follow Up Management
             'manage follow ups',
 
+            // Service Management
+            'view services',
+            'create services',
+            'edit services',
+            'delete services',
+
+            // Project Management
+            'view projects',
+            'create projects',
+            'edit projects',
+            'delete projects',
+
             // News Board
             'view news',
             'create news',
@@ -86,6 +98,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view customers', 'create customers', 'edit customers', 'delete customers',
             'manage contact persons',
             'manage follow ups',
+            'view services', 'create services', 'edit services', 'delete services',
+            'view projects', 'create projects', 'edit projects', 'delete projects',
             'view news', 'create news', 'edit news', 'delete news', 'publish news',
             'view settings',
         ]);
@@ -99,6 +113,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view customers', 'create customers', 'edit customers',
             'manage contact persons',
             'manage follow ups',
+            'view services', 'create services', 'edit services',
+            'view projects', 'create projects', 'edit projects',
             'view news', 'create news', 'edit news',
         ]);
 
@@ -109,6 +125,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view customers', 'create customers', 'edit customers',
             'manage contact persons',
             'manage follow ups',
+            'view services',
+            'view projects', 'create projects', 'edit projects',
             'view news',
         ]);
 

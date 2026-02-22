@@ -349,7 +349,7 @@ describe('Dashboard Follow-ups', function (): void {
         $user = User::factory()->create();
         $user->assignRole('sales');
 
-        $lead = Lead::factory()->create();
+        $lead = Lead::factory()->create(['assigned_to' => $user->id]);
         $followUp = FollowUp::factory()->create([
             'followable_type' => Lead::class,
             'followable_id' => $lead->id,
@@ -373,7 +373,7 @@ describe('Dashboard Follow-ups', function (): void {
         $user = User::factory()->create();
         $user->assignRole('sales');
 
-        $lead = Lead::factory()->create();
+        $lead = Lead::factory()->create(['assigned_to' => $user->id]);
         $followUp = FollowUp::factory()->overdue()->create([
             'followable_type' => Lead::class,
             'followable_id' => $lead->id,

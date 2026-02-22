@@ -30,6 +30,7 @@ class UpdateLeadRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:5000'],
             'assigned_to' => ['nullable', 'exists:users,id'],
             'business_id' => ['nullable', 'exists:businesses,id'],
+            'service_id' => ['nullable', 'exists:services,id'],
         ];
     }
 }

@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
 
-export default function Create({ statuses, sources, entityTypes, users, businesses, auth }) {
+export default function Create({ statuses, sources, entityTypes, users, businesses, services, currentUserId, auth }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         entity_type: 'individual',
@@ -11,8 +11,9 @@ export default function Create({ statuses, sources, entityTypes, users, business
         source: 'other',
         status: 'new',
         notes: '',
-        assigned_to: '',
+        assigned_to: currentUserId || '',
         business_id: '',
+        service_id: '',
     });
 
     const handleSubmit = (e) => {
@@ -152,7 +153,7 @@ export default function Create({ statuses, sources, entityTypes, users, business
                                         {errors.assigned_to && <div className="invalid-feedback">{errors.assigned_to}</div>}
                                     </div>
 
-                                    <div className="col-12">
+                                    <div className="col-md-6">
                                         <label className="form-label">Associated Business</label>
                                         <select
                                             className={`form-select ${errors.business_id ? 'is-invalid' : ''}`}
@@ -165,6 +166,21 @@ export default function Create({ statuses, sources, entityTypes, users, business
                                             ))}
                                         </select>
                                         {errors.business_id && <div className="invalid-feedback">{errors.business_id}</div>}
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Service</label>
+                                        <select
+                                            className={`form-select ${errors.service_id ? 'is-invalid' : ''}`}
+                                            value={data.service_id}
+                                            onChange={(e) => setData('service_id', e.target.value)}
+                                        >
+                                            <option value="">None</option>
+                                            {services.map((service) => (
+                                                <option key={service.id} value={service.id}>{service.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.service_id && <div className="invalid-feedback">{errors.service_id}</div>}
                                     </div>
 
                                     <div className="col-12">

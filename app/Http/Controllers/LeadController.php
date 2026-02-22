@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateLeadRequest;
 use App\Models\Business;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,13 +27,13 @@ class LeadController extends Controller
         $search = $request->string('search')->toString();
 
         $leads = Lead::query()
-            ->with(['assignee:id,name', 'business:id,name'])
+            ->with(['assignee:id,name', 'business:id,name', 'service:id,name'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('company', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%");
+                        ->orWhere('company', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
             ->latest()
@@ -57,6 +58,8 @@ class LeadController extends Controller
             'entityTypes' => EntityType::toArray(),
             'users' => $this->getAssignableUsers(),
             'businesses' => $this->getBusinesses(),
+            'services' => $this->getServices(),
+            'currentUserId' => auth()->id(),
         ]);
     }
 
@@ -74,7 +77,7 @@ class LeadController extends Controller
     {
         $this->authorize('view', $lead);
 
-        $lead->load(['assignee:id,name', 'business:id,name', 'customer', 'contactPeople', 'followUps.creator:id,name']);
+        $lead->load(['assignee:id,name', 'business:id,name', 'service:id,name', 'customer', 'contactPeople', 'followUps.creator:id,name']);
 
         return Inertia::render('Leads/Show', [
             'lead' => $lead,
@@ -97,6 +100,7 @@ class LeadController extends Controller
             'entityTypes' => EntityType::toArray(),
             'users' => $this->getAssignableUsers(),
             'businesses' => $this->getBusinesses(),
+            'services' => $this->getServices(),
         ]);
     }
 
@@ -178,6 +182,18 @@ class LeadController extends Controller
     private function getBusinesses(): \Illuminate\Database\Eloquent\Collection
     {
         return Business::query()
+            ->select(['id', 'name'])
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, Service>
+     */
+    private function getServices(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Service::query()
             ->select(['id', 'name'])
             ->where('status', 'active')
             ->orderBy('name')

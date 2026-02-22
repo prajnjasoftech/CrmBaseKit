@@ -1,9 +1,12 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
 import ContactPersonList from '../../Components/ContactPersonList';
 import FollowUpList from '../../Components/FollowUpList';
 
 export default function Show({ customer, statuses, entityTypes, auth }) {
+    const { auth: { user } } = usePage().props;
+    const can = (permission) => user?.permissions?.includes(permission) ?? false;
+
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this customer?')) {
             router.delete(`/customers/${customer.id}`);
@@ -32,14 +35,18 @@ export default function Show({ customer, statuses, entityTypes, auth }) {
                         <i className="bi bi-arrow-left me-2"></i>
                         Back to List
                     </Link>
-                    <Link href={`/customers/${customer.id}/edit`} className="btn btn-primary">
-                        <i className="bi bi-pencil me-2"></i>
-                        Edit
-                    </Link>
-                    <button onClick={handleDelete} className="btn btn-outline-danger">
-                        <i className="bi bi-trash me-2"></i>
-                        Delete
-                    </button>
+                    {can('edit customers') && (
+                        <Link href={`/customers/${customer.id}/edit`} className="btn btn-primary">
+                            <i className="bi bi-pencil me-2"></i>
+                            Edit
+                        </Link>
+                    )}
+                    {can('delete customers') && (
+                        <button onClick={handleDelete} className="btn btn-outline-danger">
+                            <i className="bi bi-trash me-2"></i>
+                            Delete
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -107,17 +114,19 @@ export default function Show({ customer, statuses, entityTypes, auth }) {
                         <div className="admin-card mb-4">
                             <div className="card-header d-flex justify-content-between align-items-center">
                                 <h2 className="card-title mb-0">Contact Persons</h2>
-                                <Link href={`/customers/${customer.id}/contacts/create`} className="btn btn-primary btn-sm">
-                                    <i className="bi bi-plus me-1"></i>
-                                    Add Contact
-                                </Link>
+                                {can('manage contact persons') && (
+                                    <Link href={`/customers/${customer.id}/contacts/create`} className="btn btn-primary btn-sm">
+                                        <i className="bi bi-plus me-1"></i>
+                                        Add Contact
+                                    </Link>
+                                )}
                             </div>
                             <div className="card-body">
                                 <ContactPersonList
                                     contacts={customer.contact_people || []}
                                     parentType="customer"
                                     parentId={customer.id}
-                                    canManage={true}
+                                    canManage={can('manage contact persons')}
                                 />
                             </div>
                         </div>
@@ -126,18 +135,84 @@ export default function Show({ customer, statuses, entityTypes, auth }) {
                     <div className="admin-card mb-4">
                         <div className="card-header d-flex justify-content-between align-items-center">
                             <h2 className="card-title mb-0">Follow-ups</h2>
-                            <Link href={`/customers/${customer.id}/follow-ups/create`} className="btn btn-primary btn-sm">
-                                <i className="bi bi-plus me-1"></i>
-                                Schedule Follow-up
-                            </Link>
+                            {can('manage follow ups') && (
+                                <Link href={`/customers/${customer.id}/follow-ups/create`} className="btn btn-primary btn-sm">
+                                    <i className="bi bi-plus me-1"></i>
+                                    Schedule Follow-up
+                                </Link>
+                            )}
                         </div>
                         <div className="card-body">
                             <FollowUpList
                                 followUps={customer.follow_ups || []}
                                 parentType="customer"
                                 parentId={customer.id}
-                                canManage={true}
+                                canManage={can('manage follow ups')}
                             />
+                        </div>
+                    </div>
+
+                    <div className="admin-card mb-4">
+                        <div className="card-header d-flex justify-content-between align-items-center">
+                            <h2 className="card-title mb-0">Projects</h2>
+                            {can('create projects') && (
+                                <Link href={`/customers/${customer.id}/projects/create`} className="btn btn-primary btn-sm">
+                                    <i className="bi bi-plus me-1"></i>
+                                    Add Project
+                                </Link>
+                            )}
+                        </div>
+                        <div className="card-body">
+                            {customer.projects && customer.projects.length > 0 ? (
+                                <div className="table-responsive">
+                                    <table className="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Service</th>
+                                                <th>Status</th>
+                                                <th>Assigned To</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {customer.projects.map((project) => (
+                                                <tr key={project.id}>
+                                                    <td>
+                                                        <Link href={`/customers/${customer.id}/projects/${project.id}`}>
+                                                            {project.name}
+                                                        </Link>
+                                                    </td>
+                                                    <td>{project.service?.name || '-'}</td>
+                                                    <td>
+                                                        <span className={`status-badge ${
+                                                            project.status === 'completed' ? 'status-active' :
+                                                            project.status === 'in_progress' ? 'status-pending' :
+                                                            project.status === 'cancelled' ? 'status-inactive' :
+                                                            'status-pending'
+                                                        }`}>
+                                                            {project.status.replace('_', ' ')}
+                                                        </span>
+                                                    </td>
+                                                    <td>{project.assignee?.name || 'Unassigned'}</td>
+                                                    <td className="text-end">
+                                                        {can('edit projects') && (
+                                                            <Link
+                                                                href={`/customers/${customer.id}/projects/${project.id}/edit`}
+                                                                className="btn btn-outline-primary btn-sm me-1"
+                                                            >
+                                                                <i className="bi bi-pencil"></i>
+                                                            </Link>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <p className="text-muted mb-0">No projects yet.</p>
+                            )}
                         </div>
                     </div>
 

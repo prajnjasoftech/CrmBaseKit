@@ -14,6 +14,7 @@ const menuItems = [
             { name: 'Leads', icon: 'bi-funnel', href: '/leads' },
             { name: 'Customers', icon: 'bi-people', href: '/customers' },
             { name: 'Businesses', icon: 'bi-building', href: '/businesses' },
+            { name: 'Services', icon: 'bi-briefcase', href: '/services' },
         ],
     },
     {
